@@ -53,13 +53,13 @@ def handle_win_f3 ():
     print("hotkey f3 pressed, screenshot starting")
     width, height = (2560, 1440)
     top_team = ImageGrab.grab(bbox=(width*0.18, height*0.31, width*0.38, height*0.55))
-    with open(os.path.join(os.path.curdir, 'screenshot_examples', "toptest_%s.jpg" % strftime("%Y_%m_%d_%H%M%S", gmtime())), "w+") as f:
+    with open(os.path.join(os.path.curdir, 'screenshot_examples', "top_%s.jpg" % strftime("%Y_%m_%d_%H%M%S", gmtime())), "w+") as f:
         top_team.save(f, "JPEG")
     bottom_team = ImageGrab.grab(bbox=(width*0.18, height*0.65, width*0.38, height*0.90))
-    with open(os.path.join(os.path.curdir, 'screenshot_examples', "bottomtest_%s.jpg" % strftime("%Y_%m_%d_%H%M%S", gmtime())), "w+") as f:
+    with open(os.path.join(os.path.curdir, 'screenshot_examples', "bottom_%s.jpg" % strftime("%Y_%m_%d_%H%M%S", gmtime())), "w+") as f:
         bottom_team.save(f, "JPEG")
 
-    top = pytesseract.image_to_string(top_team)
+    top = pytesseract.image_to_string(top_team, config="-c tessedit_char_whitelist=.-_1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM")
     for line in top.split("\n"):
         if len(line.strip()) > 0:
             player = lookup_player(line.strip())
