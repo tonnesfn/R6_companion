@@ -6,9 +6,10 @@ import pickle
 import os.path
 import cv2
 import time
+import json
 
 blur_amount = 0.5
-error_limit = 1.0
+error_limit = 0.1
 
 pre_spacing = 14
 spacing = 43
@@ -23,18 +24,30 @@ image_padding_size = [60, 35]
 
 class CharacterDataset:
     characters = {}
+    currently_training = False
 
     def load_data_set(self, filename):
         if os.path.isfile(filename):
             self.characters = pickle.load(open(filename, "rb"))
 
-    def save_data_set(self, filename):
-        pickle.dump(self.characters, open(filename, "wb"))
+    def save_data_set(self, directory):
+        pickle.dump(self.characters, open(directory + '/character_samples.pickle', "wb"))
+
+        counterDict = {}
+        for key, value in self.characters.items():
+            counterDict[key] = len(value)
+
+        with open('dataset/character_stats.json', 'w') as outfile:
+            json.dump(counterDict, outfile)
 
     def prompt_user_for_class(self, character_image):
         show_image(character_image.filter(ImageFilter.GaussianBlur(blur_amount)))
-        print('Unknown character. Please input: >', end='')
-        given_character = input()
+        print('> ', end='')
+
+        while True:
+            given_character = input()
+            if len(given_character) == 1:
+                break
 
         if given_character in self.characters:
             self.characters[given_character].append(image_to_array(character_image.filter(ImageFilter.GaussianBlur(blur_amount))).flatten())
@@ -73,10 +86,8 @@ class CharacterDataset:
 
                 errors[key] = min(all_errors)
 
-            if errors[min(errors, key=errors.get)] < error_limit:
-                #print('Matched ' + min(errors, key=errors.get) + ' with error {}'.format(errors[min(errors, key=errors.get)]))
+            if self.currently_training == False:
                 return min(errors, key=errors.get)
-
 
         return self.prompt_user_for_class(character_image)
 
@@ -94,8 +105,6 @@ class CharacterDataset:
         for sentence_image in sentence_images:
             classifications.append(''.join(self.classify_sentence(sentence_image)))
 
-
-
         return classifications
 
 
@@ -109,6 +118,7 @@ def show_image(given_pil_image, figure_name='default_figure'):
 def image_to_array(img):
     return np.array(img.getdata(),
                     np.uint8).reshape(img.size[1], img.size[0])
+
 
 def run_custom_filters(given_image):
 
@@ -134,7 +144,7 @@ def run_custom_filters(given_image):
                     min_index = min(loc for loc, val in enumerate(underscore_height) if val == True)
                     max_index = max(loc for loc, val in enumerate(underscore_height) if val == True)
 
-                    print('len: {}, {} - {}'.format(i-character_start, character_start, i))
+                    #print('len: {}, {} - {}'.format(i-character_start, character_start, i))
                     image_array[min_index:max_index+1, character_start-2:character_start+2] = 0
                     image_array[min_index:max_index+1, i-2:i+2] = 0
 
@@ -144,6 +154,7 @@ def run_custom_filters(given_image):
     img_to_return.putdata(image_array.astype(int).flatten())
 
     return img_to_return
+
 
 def threshold_image(given_image):
     image_array = (np.asarray(list(given_image.getdata())))
@@ -181,6 +192,7 @@ def pad_image(given_image):
     padded_image.paste(given_image, (int((image_padding_size[0]/2) - given_image.size[0]/2), int((image_padding_size[1]/2) - given_image.size[1]/2)))
     return padded_image
 
+
 def tightly_crop(given_image):
 
     image_array = image_to_array(given_image)
@@ -193,6 +205,7 @@ def tightly_crop(given_image):
     ret_image.putdata(image_array[min_index:max_index+1, :].astype(int).flatten())
 
     return ret_image
+
 
 def split_nick_image(given_image):
     #given_image.show()
@@ -229,18 +242,24 @@ def erode_image(given_image, kernel_size):
 
     return img_to_return
 
-def process_screenshot(givenImageObject):
-    #show_image(givenImageObject, 'whole_image')
 
+def divide_into_sentences(given_image):
     # Crop images into each nick:
     cropped_images = []
-    w, h = givenImageObject.size
+    w, h = given_image.size
     for i in range(5):
         # crop: left, upper, right, lower
-        cropped_images.append(threshold_image(givenImageObject.crop((0, pre_spacing + (spacing*i)+(i*nick_height), w, pre_spacing + (spacing*i)+((i+1)*nick_height)))))
+        cropped_images.append(threshold_image(given_image.crop((0, pre_spacing + (spacing*i)+(i*nick_height), w, pre_spacing + (spacing*i)+((i+1)*nick_height)))))
 
     for i in range(len(cropped_images)):
         cropped_images[i] = run_custom_filters(cropped_images[i])
+
+    return cropped_images
+
+def process_screenshot(givenImageObject):
+    #show_image(givenImageObject, 'whole_image')
+
+    cropped_images = divide_into_sentences(givenImageObject)
 
     character_lists = []
 
@@ -249,15 +268,18 @@ def process_screenshot(givenImageObject):
 
     return character_lists
 
-if __name__ == "__main__":
+def get_nicks(given_image):
     character_dataset = CharacterDataset()
-    character_dataset.load_data_set('dataset/character_dataset.pickle')
+    character_dataset.load_data_set('dataset/character_samples.pickle')
 
-    im1 = Image.open("screenshot_examples/bottom_2017_07_15_121656.jpg").convert('L')
-    sentence_images = process_screenshot(im1)
+    sentence_images = process_screenshot(given_image)
     nicks = CharacterDataset.classify_sentences(character_dataset, sentence_images)
 
-    character_dataset.save_data_set('dataset/character_dataset.pickle')
+    character_dataset.save_data_set('dataset')
 
-    #im2 = Image.open("bottom_2017_07_13_234146.jpg").convert('L')
-    #process_screenshot(im2)
+    return nicks
+
+if __name__ == "__main__":
+
+    im1 = Image.open("screenshot_examples/bottomtest_2017_07_15_155459.jpg").convert('L')
+    print(get_nicks(im1))
