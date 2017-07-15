@@ -6,18 +6,15 @@ import win32con
 from PIL import ImageGrab, Image, ImageEnhance, ImageOps
 import pytesseract
 from time import gmtime, strftime
-import r6sapi as api
-import asyncio
 import requests
-import processScreenshot
 
 byref = ctypes.byref
 user32 = ctypes.windll.user32
 pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files (x86)\\Tesseract-OCR\\tesseract'
-
+script_dir = os.path.dirname(__file__)
 
 HOTKEYS = {
-    1: (win32con.VK_INSERT, None),
+    1: (win32con.VK_F3, None),
     2: (win32con.VK_F4, None)
 }
 
@@ -54,58 +51,25 @@ def print_player(player, raw):
 
 def handle_win_f3 ():
     print("hotkey f3 pressed, screenshot starting")
-    ImageGrab.grab().save("screen_capture.jpg", "JPEG")
     width, height = (2560, 1440)
     top_team = ImageGrab.grab(bbox=(width*0.18, height*0.31, width*0.38, height*0.55))
-    top_team.save("top_%s.jpg"%strftime("%Y_%m_%d_%H%M%S", gmtime()), "JPEG")
-    top_1 = ImageGrab.grab(bbox=(width * 0.18, height * 0.31, width * 0.38, height * 0.35))
-    top_2 = ImageGrab.grab(bbox=(width * 0.18, height * 0.36, width * 0.38, height * 0.40))
-    top_3 = ImageGrab.grab(bbox=(width * 0.18, height * 0.41, width * 0.38, height * 0.45))
-    top_4 = ImageGrab.grab(bbox=(width * 0.18, height * 0.46, width * 0.38, height * 0.50))
-    top_5 = ImageGrab.grab(bbox=(width * 0.18, height * 0.51, width * 0.38, height * 0.55))
-    top = []
-    current = 0.31
-    player_height = 0.04
-    offset = 0.01
-    for x in range(5):
-        print(current)
-        print(current+player_height)
-        current += player_height + offset
-    top_1.save("test1.jpg", "JPEG")
-    top_2.save("test2.jpg", "JPEG")
-    top_3.save("test3.jpg", "JPEG")
-    top_4.save("test4.jpg", "JPEG")
-    top_5.save("test5.jpg", "JPEG")
-    top_5alt = ImageOps.posterize(top_5, 4)
-    top_5altalt = ImageOps.invert(top_5)
-    top_5altalt.save("test5altalt.jpg", "JPEG")
-    top_5alt.save("test5alt.jpg", "JPEG")
-    print(pytesseract.image_to_string(top_1))
-    print(pytesseract.image_to_string(top_2))
-    print(pytesseract.image_to_string(top_3))
-    print(pytesseract.image_to_string(top_4))
-    print("regular")
-    print(pytesseract.image_to_string(top_5))
-    print("alt")
-    print(pytesseract.image_to_string(top_5alt))
-    print("altalt")
-    print(pytesseract.image_to_string(top_5altalt))
+    with open(os.path.join(os.path.curdir, 'screenshot_examples', "toptest_%s.jpg" % strftime("%Y_%m_%d_%H%M%S", gmtime())), "w+") as f:
+        top_team.save(f, "JPEG")
     bottom_team = ImageGrab.grab(bbox=(width*0.18, height*0.65, width*0.38, height*0.90))
-    #processScreenshot.process_screenshot(bottom_team.convert('L'))
-    con = ImageEnhance.Contrast(top_team).enhance(2)
-    con.save("con_%s.jpg" %strftime("%Y_%m_%d_%H%M%S", gmtime()), "JPEG")
-    bottom_team.save("bottom_%s.jpg" %strftime("%Y_%m_%d_%H%M%S", gmtime()), "JPEG")
+    with open(os.path.join(os.path.curdir, 'screenshot_examples', "bottomtest_%s.jpg" % strftime("%Y_%m_%d_%H%M%S", gmtime())), "w+") as f:
+        bottom_team.save(f, "JPEG")
+
     top = pytesseract.image_to_string(top_team)
     for line in top.split("\n"):
         if len(line.strip()) > 0:
             player = lookup_player(line.strip())
             print_player(player, line.strip())
-
     bottom = pytesseract.image_to_string(bottom_team)
     for line in bottom.split("\n"):
         if len(line.strip()) > 0:
             player = lookup_player(line.strip())
             print_player(player, line.strip())
+            
     print("screenshot done")
 
 
