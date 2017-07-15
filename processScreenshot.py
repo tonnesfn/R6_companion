@@ -11,7 +11,7 @@ blur_amount = 0.5
 error_limit = 1.0
 
 pre_spacing = 14
-spacing = 40
+spacing = 43
 nick_height = 31
 
 thresholding_limit_black = 120
@@ -165,6 +165,13 @@ def threshold_image(given_image):
     ret_image = Image.new('L', given_image.size)
     ret_image.putdata(thresholded_list.astype(int))
 
+    if gray_counter > 0.99:
+        ret_image = erode_image(ret_image, 1)
+    elif white_counter > 0.8:
+        ret_image = erode_image(ret_image, 2)
+    else:
+        ret_image = erode_image(ret_image, 1)
+
     return ret_image
 
 
@@ -213,9 +220,9 @@ def split_nick_image(given_image):
     return characters_images
 
 
-def erode_image(given_image):
+def erode_image(given_image, kernel_size):
     image_array = image_to_array(given_image)
-    kernel = np.ones((2, 2), np.uint8)
+    kernel = np.ones((kernel_size, kernel_size), np.uint8)
     image_array = cv2.erode(image_array, kernel, iterations=1)
     img_to_return = Image.new("L", given_image.size)
     img_to_return.putdata(image_array.astype(int).flatten())
@@ -233,7 +240,7 @@ def process_screenshot(givenImageObject):
         cropped_images.append(threshold_image(givenImageObject.crop((0, pre_spacing + (spacing*i)+(i*nick_height), w, pre_spacing + (spacing*i)+((i+1)*nick_height)))))
 
     for i in range(len(cropped_images)):
-        cropped_images[i] = erode_image(run_custom_filters(cropped_images[i]))
+        cropped_images[i] = run_custom_filters(cropped_images[i])
 
     character_lists = []
 
