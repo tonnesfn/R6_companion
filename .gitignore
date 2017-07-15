@@ -1,2 +1,3 @@
 .idea
 character_dataset.pickle
+__pycache__
