@@ -108,7 +108,6 @@ def image_to_array(img):
     return np.array(img.getdata(),
                     np.uint8).reshape(img.size[1], img.size[0])
 
-
 def run_custom_filters(given_image):
 
     # Filter out underscores:
@@ -173,6 +172,18 @@ def pad_image(given_image):
     padded_image.paste(given_image, (int((image_padding_size[0]/2) - given_image.size[0]/2), int((image_padding_size[1]/2) - given_image.size[1]/2)))
     return padded_image
 
+def tightly_crop(given_image):
+
+    image_array = image_to_array(given_image)
+    new_array = np.sum(given_image, axis=1)
+
+    min_index = min(loc for loc, val in enumerate(new_array) if val > 0)
+    max_index = max(loc for loc, val in enumerate(new_array) if val > 0)
+
+    ret_image = Image.new('L', (given_image.size[0], (max_index-min_index)+1))
+    ret_image.putdata(image_array[min_index:max_index+1, :].astype(int).flatten())
+
+    return ret_image
 
 def split_nick_image(given_image):
     #given_image.show()
@@ -191,7 +202,7 @@ def split_nick_image(given_image):
                 character_start = i
             # Moving from black to character:
             else:
-                characters_images.append(pad_image(given_image.crop((character_start, 0, i, given_image.size[1]))))
+                characters_images.append(pad_image(tightly_crop(given_image.crop((character_start, 0, i, given_image.size[1])))))
 
         last_state = contains_character[i]
 
