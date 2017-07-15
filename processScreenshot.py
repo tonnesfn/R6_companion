@@ -4,18 +4,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import os.path
+import cv2
 import time
 
 blur_amount = 0.5
 error_limit = 1.0
 
-pre_spacing = 16
-spacing = 46
-nick_height = 27
+pre_spacing = 14
+spacing = 40
+nick_height = 31
 
 thresholding_limit_black = 120
 thresholding_limit_gray = 80
-thresholding_limit_white = 90
+thresholding_limit_white = 98 # Higher number is stricter
 
 image_padding_size = [60, 35]
 
@@ -59,6 +60,7 @@ class CharacterDataset:
         return error
 
     def classify_character(self, character_image):
+
         if len(self.characters) > 0:
             # For each character in dataset:
             errors = {}
@@ -116,9 +118,9 @@ def run_custom_filters(given_image):
     last_state = 0
     character_start = 0
 
-    for i in range(len(image_array[-1,:])):
+    for i in range(len(image_array[-2,:])):
         # Detected transition:
-        if image_array[-1, i] != last_state:
+        if image_array[-4, i] != last_state:
             # Moving from character to black
             if last_state == 0:
                 character_start = i
@@ -136,7 +138,7 @@ def run_custom_filters(given_image):
                     image_array[min_index:max_index+1, character_start-2:character_start+2] = 0
                     image_array[min_index:max_index+1, i-2:i+2] = 0
 
-        last_state = image_array[-1, i]
+        last_state = image_array[-4, i]
 
     img_to_return = Image.new("L", given_image.size)
     img_to_return.putdata(image_array.astype(int).flatten())
@@ -202,12 +204,23 @@ def split_nick_image(given_image):
                 character_start = i
             # Moving from black to character:
             else:
+                #show_image(given_image.crop((character_start, 0, i, given_image.size[1])), 'debug')
+                #show_image(given_image.crop((character_start, 0, i, given_image.size[1])), 'debug_skeleton')
                 characters_images.append(pad_image(tightly_crop(given_image.crop((character_start, 0, i, given_image.size[1])))))
 
         last_state = contains_character[i]
 
     return characters_images
 
+
+def erode_image(given_image):
+    image_array = image_to_array(given_image)
+    kernel = np.ones((2, 2), np.uint8)
+    image_array = cv2.erode(image_array, kernel, iterations=1)
+    img_to_return = Image.new("L", given_image.size)
+    img_to_return.putdata(image_array.astype(int).flatten())
+
+    return img_to_return
 
 def process_screenshot(givenImageObject):
     #show_image(givenImageObject, 'whole_image')
@@ -220,7 +233,7 @@ def process_screenshot(givenImageObject):
         cropped_images.append(threshold_image(givenImageObject.crop((0, pre_spacing + (spacing*i)+(i*nick_height), w, pre_spacing + (spacing*i)+((i+1)*nick_height)))))
 
     for i in range(len(cropped_images)):
-        cropped_images[i] = run_custom_filters(cropped_images[i])
+        cropped_images[i] = erode_image(run_custom_filters(cropped_images[i]))
 
     character_lists = []
 
@@ -233,7 +246,7 @@ if __name__ == "__main__":
     character_dataset = CharacterDataset()
     character_dataset.load_data_set('dataset/character_dataset.pickle')
 
-    im1 = Image.open("screenshot_examples/bottom_2017_07_15_113641.jpg").convert('L')
+    im1 = Image.open("screenshot_examples/bottom_2017_07_15_121656.jpg").convert('L')
     sentence_images = process_screenshot(im1)
     nicks = CharacterDataset.classify_sentences(character_dataset, sentence_images)
 
