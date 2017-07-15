@@ -125,10 +125,17 @@ def run_custom_filters(given_image):
                 character_start = i
             # Moving from black to character:
             else:
+                # If a single underscore:
                 if 14 < i - character_start < 18:
-                    #print('len: {}, {} - {}'.format(i-character_start, character_start, i))
-                    image_array[:, character_start:character_start+2] = 0
-                    image_array[:, i-2:i] = 0
+
+                    underscore_height = image_array[:, int(((i-character_start)/2)+character_start)] == 255
+
+                    min_index = min(loc for loc, val in enumerate(underscore_height) if val == True)
+                    max_index = max(loc for loc, val in enumerate(underscore_height) if val == True)
+
+                    print('len: {}, {} - {}'.format(i-character_start, character_start, i))
+                    image_array[min_index:max_index+1, character_start-2:character_start+2] = 0
+                    image_array[min_index:max_index+1, i-2:i+2] = 0
 
         last_state = image_array[-1, i]
 
