@@ -17,9 +17,9 @@ spacing = 43
 underscore_position = 38
 nick_height = 31
 
-thresholding_limit_black = 120
-thresholding_limit_gray = 80
-thresholding_limit_white = 95 # Higher number is stricter
+thresholding_limit_black = 120  # Higher number is a stricter thresholding
+thresholding_limit_gray = 110  # Higher number is a stricter thresholding
+thresholding_limit_white = 80  # Lower number is a stricter thresholding
 
 image_padding_size = [60, 35]
 
@@ -43,7 +43,8 @@ class CharacterDataset:
             json.dump(counterDict, outfile, indent=4, sort_keys=True)
 
     def prompt_user_for_class(self, character_image):
-        show_image(character_image.filter(ImageFilter.GaussianBlur(blur_amount)))
+        #show_image(character_image.filter(ImageFilter.GaussianBlur(blur_amount)))
+        show_image(character_image)
         print('> ', end='')
 
         while True:
@@ -52,9 +53,11 @@ class CharacterDataset:
                 break
 
         if given_character in self.characters:
-            self.characters[given_character].append(image_to_array(character_image.filter(ImageFilter.GaussianBlur(blur_amount))).flatten())
+            #self.characters[given_character].append(image_to_array(character_image.filter(ImageFilter.GaussianBlur(blur_amount))).flatten())
+            self.characters[given_character].append(image_to_array(character_image).flatten())
         else:
-            self.characters[given_character] = [image_to_array(character_image.filter(ImageFilter.GaussianBlur(blur_amount))).flatten()]
+            #self.characters[given_character] = [image_to_array(character_image.filter(ImageFilter.GaussianBlur(blur_amount))).flatten()]
+            self.characters[given_character] = [image_to_array(character_image).flatten()]
 
         return given_character
 
@@ -84,7 +87,8 @@ class CharacterDataset:
                 # For each character example in current character:
                 all_errors = []
                 for i in range(len(value)):
-                    all_errors.append(self.matches(image_to_array(character_image.filter(ImageFilter.GaussianBlur(blur_amount))).flatten(), value[i], key))
+                    #all_errors.append(self.matches(image_to_array(character_image.filter(ImageFilter.GaussianBlur(blur_amount))).flatten(), value[i], key))
+                    all_errors.append(self.matches(image_to_array(character_image).flatten(), value[i], key))
 
                 errors[key] = min(all_errors)
 
@@ -169,6 +173,10 @@ def run_custom_filters(given_image):
     return img_to_return
 
 
+def save_pil_image(given_image, filename):
+    given_image.save(filename, "JPEG", quality=100)
+
+
 def threshold_image(given_image):
     image_array = (np.asarray(list(given_image.getdata())))
     white_counter = sum((image_array > 100)*1.0) / len(image_array)
@@ -192,7 +200,7 @@ def threshold_image(given_image):
     if gray_counter > 0.99:
         ret_image = erode_image(ret_image, 1)
     elif white_counter > 0.65:
-        ret_image = erode_image(ret_image, 2)
+        ret_image = erode_image(ret_image, 1)
         image_array = image_to_array(ret_image)
         image_array[underscore_position + 1:, :] = 0
         ret_image = array_to_image(image_array, ret_image)
@@ -251,6 +259,15 @@ def erode_image(given_image, kernel_size):
     image_array = image_to_array(given_image)
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
     image_array = cv2.erode(image_array, kernel, iterations=1)
+    img_to_return = Image.new("L", given_image.size)
+    img_to_return.putdata(image_array.astype(int).flatten())
+
+    return img_to_return
+
+def dilate_image(given_image, kernel_size):
+    image_array = image_to_array(given_image)
+    kernel = np.ones((kernel_size, kernel_size), np.uint8)
+    image_array = cv2.dilate(image_array, kernel, iterations=1)
     img_to_return = Image.new("L", given_image.size)
     img_to_return.putdata(image_array.astype(int).flatten())
 
