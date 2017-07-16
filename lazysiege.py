@@ -7,6 +7,7 @@ from PIL import ImageGrab, Image, ImageEnhance, ImageOps
 import pytesseract
 from time import gmtime, strftime
 import requests
+import processScreenshot
 
 byref = ctypes.byref
 user32 = ctypes.windll.user32
@@ -55,7 +56,7 @@ def handle_win_f3 ():
     top_team = ImageGrab.grab(bbox=(width*0.18, height*0.31, width*0.38, height*0.55))
     with open(os.path.join(os.path.curdir, 'screenshot_examples', "top_%s.jpg" % strftime("%Y_%m_%d_%H%M%S", gmtime())), "w+") as f:
         top_team.save(f, "JPEG")
-    bottom_team = ImageGrab.grab(bbox=(width*0.18, height*0.65, width*0.38, height*0.90))
+    bottom_team = ImageGrab.grab(bbox=(width*0.18, height*0.66, width*0.38, height*0.90))
     with open(os.path.join(os.path.curdir, 'screenshot_examples', "bottom_%s.jpg" % strftime("%Y_%m_%d_%H%M%S", gmtime())), "w+") as f:
         bottom_team.save(f, "JPEG")
 
@@ -69,7 +70,15 @@ def handle_win_f3 ():
         if len(line.strip()) > 0:
             player = lookup_player(line.strip())
             print_player(player, line.strip())
-            
+    top_team_strings = processScreenshot.get_nicks(top_team.convert('L'))
+    bottom_team_strings = processScreenshot.get_nicks(bottom_team.convert('L'))
+    for p in top_team_strings:
+        player = lookup_player(p)
+        print_player(player, p)
+
+    for p in bottom_team_strings:
+        player = lookup_player(p)
+        #print_player(player, p)
     print("screenshot done")
 
 
