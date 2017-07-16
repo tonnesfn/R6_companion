@@ -81,7 +81,7 @@ class CharacterDataset:
 
     def classify_character(self, character_image):
 
-        if len(self.characters) > 0:
+        if (len(self.characters) > 0) and (self.currently_training == False):
             # For each character in dataset:
             errors = {}
 
@@ -97,7 +97,8 @@ class CharacterDataset:
             if self.currently_training == False:
                 return min(errors, key=errors.get)
 
-        return self.prompt_user_for_class(character_image)
+        else:
+            return self.prompt_user_for_class(character_image)
 
     def classify_sentence(self, character_images):
         classifications = []
@@ -291,13 +292,14 @@ def process_screenshot(given_images):
 def get_nicks(given_sentence_images, currently_training=False):
     character_dataset = CharacterDataset()
 
-    character_dataset.load_data_set('dataset/character_samples.pickle')
+    character_dataset.load_data_set('dataset')
     character_dataset.currently_training = currently_training
 
     letters = process_screenshot(given_sentence_images)
     nicks = CharacterDataset.classify_sentences(character_dataset, letters)
 
-    character_dataset.save_data_set('dataset')
+    if currently_training == True:
+        character_dataset.save_data_set('dataset')
 
     return nicks
 
@@ -307,4 +309,7 @@ if __name__ == "__main__":
     screenshot_example = Image.open('screenshot_examples/T-2017_07_16_133135.jpg').convert('L')
     screenshot_capture.set_screenshot(screenshot_example)
 
-    print(get_nicks(screenshot_capture.get_top_names(), True))
+    top_names, bottom_names = screenshot_capture.get_names()
+
+    print(get_nicks(top_names, False))
+    print(get_nicks(bottom_names, False))
