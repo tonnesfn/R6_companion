@@ -19,7 +19,7 @@ nick_height = 31
 
 thresholding_limit_black = 120
 thresholding_limit_gray = 80
-thresholding_limit_white = 98 # Higher number is stricter
+thresholding_limit_white = 95 # Higher number is stricter
 
 image_padding_size = [60, 35]
 
@@ -122,6 +122,12 @@ def show_image(given_pil_image, figure_name='default_figure'):
     plt.pause(0.01)
 
 
+def array_to_image(given_array, original_image):
+    img_to_return = Image.new("L", original_image.size)
+    img_to_return.putdata(given_array.astype(int).flatten())
+    return img_to_return
+
+
 def image_to_array(img):
     return np.array(img.getdata(),
                     np.uint8).reshape(img.size[1], img.size[0])
@@ -134,9 +140,6 @@ def run_custom_filters(given_image):
 
     last_state = 0
     character_start = 0
-
-    print(nick_height)
-    print(underscore_position)
 
     for i in range(len(image_array[underscore_position,:])):
         # Detected transition:
@@ -176,7 +179,7 @@ def threshold_image(given_image):
     if gray_counter > 0.99:
         thresholded_list = ((np.asarray(list(given_image.getdata())) > thresholding_limit_gray) * 255)
         #print('gray')
-    elif white_counter > 0.8:
+    elif white_counter > 0.65:
         thresholded_list = ((np.asarray(list(given_image.getdata())) < thresholding_limit_white) * 255)
         #print('white')
     else:
@@ -188,8 +191,11 @@ def threshold_image(given_image):
 
     if gray_counter > 0.99:
         ret_image = erode_image(ret_image, 1)
-    elif white_counter > 0.8:
+    elif white_counter > 0.65:
         ret_image = erode_image(ret_image, 2)
+        image_array = image_to_array(ret_image)
+        image_array[underscore_position + 1:, :] = 0
+        ret_image = array_to_image(image_array, ret_image)
     else:
         ret_image = erode_image(ret_image, 1)
 

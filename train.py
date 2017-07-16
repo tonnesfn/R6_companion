@@ -22,12 +22,13 @@ else:
     character_dataset.currently_training = True
 
     screenshot_capture = ScreenshotCapture.ScreenshotCapture()
-    screenshot_example = Image.open('screenshot_examples/T-2017_07_16_133135.jpg')
+    screenshot_example = Image.open('screenshot_examples/T-2017_07_16_133135.jpg').convert('L')
     screenshot_capture.set_screenshot(screenshot_example)
-    top_image, bottom_image = screenshot_capture.get_names()
 
-    sentence_images = processScreenshot.process_screenshot(top_image.convert('L'))
-    nicks = processScreenshot.CharacterDataset.classify_sentences(character_dataset, sentence_images)
+    top_names, bottom_names = screenshot_capture.get_names()
+
+    processScreenshot.get_nicks(top_names, True)
+    processScreenshot.get_nicks(bottom_names, True)
 
     character_dataset.save_data_set('dataset')
 
