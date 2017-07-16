@@ -234,7 +234,7 @@ def split_nick_image(given_image):
             # Moving from black to character:
             else:
                 #characters_images.append(pad_image(tightly_crop(given_image.crop((character_start, 0, i, given_image.size[1])))))
-                characters_images.append(pad_image(tightly_crop(given_image.crop((character_start, 0, i, given_image.size[1])))))
+                characters_images.append(pad_image(given_image.crop((character_start, 0, i, given_image.size[1]))))
 
         last_state = contains_character[i]
 
