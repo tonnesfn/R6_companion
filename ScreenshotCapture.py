@@ -6,6 +6,7 @@ import os
 name_width = 465
 left_offset = 42
 
+
 class ScreenshotCapture:
     raw_screenshot = None
 
@@ -27,7 +28,7 @@ class ScreenshotCapture:
         lines = []
         for i in range(5):
             lines.append(self.raw_screenshot.crop((left+left_offset, tops[i], left+name_width, tops[i]+line_height)))
-            lines[-1].show()
+            #lines[-1].show()
 
         return lines
 
@@ -42,7 +43,7 @@ class ScreenshotCapture:
         lines = []
         for i in range(5):
             lines.append(self.raw_screenshot.crop((left+left_offset, tops[i], left+name_width, tops[i]+line_height)))
-            lines[-1].show()
+            #lines[-1].show()
 
         return lines
 

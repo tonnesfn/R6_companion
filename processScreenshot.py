@@ -7,6 +7,7 @@ import os.path
 import cv2
 import time
 import json
+import ScreenshotCapture
 
 blur_amount = 0.5
 error_limit = 0.1
@@ -100,6 +101,11 @@ class CharacterDataset:
         return classifications
 
     def classify_sentences(self, sentence_images):
+
+        if (self.currently_training == False) and (len(self.characters) == 0):
+            print('Cannot classify without training data!')
+            return None
+
         classifications = []
 
         for sentence_image in sentence_images:
@@ -224,8 +230,7 @@ def split_nick_image(given_image):
                 character_start = i
             # Moving from black to character:
             else:
-                #show_image(given_image.crop((character_start, 0, i, given_image.size[1])), 'debug')
-                #show_image(given_image.crop((character_start, 0, i, given_image.size[1])), 'debug_skeleton')
+                #characters_images.append(pad_image(tightly_crop(given_image.crop((character_start, 0, i, given_image.size[1])))))
                 characters_images.append(pad_image(tightly_crop(given_image.crop((character_start, 0, i, given_image.size[1])))))
 
         last_state = contains_character[i]
@@ -256,24 +261,28 @@ def divide_into_sentences(given_image):
 
     return cropped_images
 
-def process_screenshot(givenImageObject):
-    #show_image(givenImageObject, 'whole_image')
 
-    cropped_images = divide_into_sentences(givenImageObject)
+def process_screenshot(given_images):
+    for i in range(len(given_images)):
+        given_images[i] = threshold_image(given_images[i])
+        given_images[i] = run_custom_filters(given_images[i])
 
     character_lists = []
 
-    for i in range(len(cropped_images)):
-        character_lists.append(split_nick_image(cropped_images[i]))
+    for i in range(len(given_images)):
+        character_lists.append(split_nick_image(given_images[i]))
 
     return character_lists
 
-def get_nicks(given_image):
-    character_dataset = CharacterDataset()
-    character_dataset.load_data_set('dataset/character_samples.pickle')
 
-    sentence_images = process_screenshot(given_image)
-    nicks = CharacterDataset.classify_sentences(character_dataset, sentence_images)
+def get_nicks(given_sentence_images, currently_training=False):
+    character_dataset = CharacterDataset()
+
+    character_dataset.load_data_set('dataset/character_samples.pickle')
+    character_dataset.currently_training = currently_training
+
+    letters = process_screenshot(given_sentence_images)
+    nicks = CharacterDataset.classify_sentences(character_dataset, letters)
 
     character_dataset.save_data_set('dataset')
 
@@ -281,5 +290,8 @@ def get_nicks(given_image):
 
 if __name__ == "__main__":
 
-    im1 = Image.open("screenshot_examples/bottomtest_2017_07_15_155459.jpg").convert('L')
-    print(get_nicks(im1))
+    screenshot_capture = ScreenshotCapture.ScreenshotCapture()
+    screenshot_example = Image.open('screenshot_examples/T-2017_07_16_133135.jpg').convert('L')
+    screenshot_capture.set_screenshot(screenshot_example)
+
+    print(get_nicks(screenshot_capture.get_top_names(), True))
