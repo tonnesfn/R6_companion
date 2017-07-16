@@ -14,6 +14,7 @@ error_limit = 0.1
 
 pre_spacing = 14
 spacing = 43
+underscore_position = 37
 nick_height = 31
 
 thresholding_limit_black = 120
@@ -134,18 +135,21 @@ def run_custom_filters(given_image):
     last_state = 0
     character_start = 0
 
-    for i in range(len(image_array[-2,:])):
+    print(nick_height)
+    print(underscore_position)
+
+    for i in range(len(image_array[underscore_position,:])):
         # Detected transition:
-        if image_array[-4, i] != last_state:
+        if image_array[underscore_position, i] != last_state:
             # Moving from character to black
             if last_state == 0:
                 character_start = i
             # Moving from black to character:
             else:
                 # If a single underscore:
-                if 14 < i - character_start < 18:
+                if 10 < i - character_start < 18:
 
-                    underscore_height = image_array[:, int(((i-character_start)/2)+character_start)] == 255
+                    underscore_height = image_array[:, int(((i - character_start) / 2) + character_start)] == 255
 
                     min_index = min(loc for loc, val in enumerate(underscore_height) if val == True)
                     max_index = max(loc for loc, val in enumerate(underscore_height) if val == True)
@@ -154,7 +158,7 @@ def run_custom_filters(given_image):
                     image_array[min_index:max_index+1, character_start-2:character_start+2] = 0
                     image_array[min_index:max_index+1, i-2:i+2] = 0
 
-        last_state = image_array[-4, i]
+        last_state = image_array[underscore_position, i]
 
     img_to_return = Image.new("L", given_image.size)
     img_to_return.putdata(image_array.astype(int).flatten())
@@ -212,7 +216,6 @@ def tightly_crop(given_image):
 
     return ret_image
 
-
 def split_nick_image(given_image):
     #given_image.show()
 
@@ -246,21 +249,6 @@ def erode_image(given_image, kernel_size):
     img_to_return.putdata(image_array.astype(int).flatten())
 
     return img_to_return
-
-
-def divide_into_sentences(given_image):
-    # Crop images into each nick:
-    cropped_images = []
-    w, h = given_image.size
-    for i in range(5):
-        # crop: left, upper, right, lower
-        cropped_images.append(threshold_image(given_image.crop((0, pre_spacing + (spacing*i)+(i*nick_height), w, pre_spacing + (spacing*i)+((i+1)*nick_height)))))
-
-    for i in range(len(cropped_images)):
-        cropped_images[i] = run_custom_filters(cropped_images[i])
-
-    return cropped_images
-
 
 def process_screenshot(given_images):
     for i in range(len(given_images)):
