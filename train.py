@@ -27,4 +27,4 @@ else:
 
     alreadyTrainedOn.append(current_file)
     with open('dataset/readImages.json', 'w') as outfile:
-        json.dump(alreadyTrainedOn, outfile)
+        json.dump(alreadyTrainedOn, outfile, indent=4, sort_keys=True)

@@ -38,7 +38,7 @@ class CharacterDataset:
             counterDict[key] = len(value)
 
         with open('dataset/character_stats.json', 'w') as outfile:
-            json.dump(counterDict, outfile)
+            json.dump(counterDict, outfile, indent=4, sort_keys=True)
 
     def prompt_user_for_class(self, character_image):
         show_image(character_image.filter(ImageFilter.GaussianBlur(blur_amount)))
