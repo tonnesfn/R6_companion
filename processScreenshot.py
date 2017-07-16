@@ -14,7 +14,7 @@ error_limit = 0.1
 
 pre_spacing = 14
 spacing = 43
-underscore_position = 37
+underscore_position = 38
 nick_height = 31
 
 thresholding_limit_black = 120
@@ -143,7 +143,7 @@ def run_custom_filters(given_image):
 
     for i in range(len(image_array[underscore_position,:])):
         # Detected transition:
-        if image_array[underscore_position, i] != last_state:
+        if max(image_array[underscore_position-1:underscore_position+1, i]) != last_state:
             # Moving from character to black
             if last_state == 0:
                 character_start = i
@@ -161,7 +161,7 @@ def run_custom_filters(given_image):
                     image_array[min_index:max_index+1, character_start-2:character_start+2] = 0
                     image_array[min_index:max_index+1, i-2:i+2] = 0
 
-        last_state = image_array[underscore_position, i]
+        last_state = max(image_array[underscore_position-1:underscore_position+1, i])
 
     img_to_return = Image.new("L", given_image.size)
     img_to_return.putdata(image_array.astype(int).flatten())
