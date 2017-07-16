@@ -17,10 +17,6 @@ if current_file in alreadyTrainedOn:
     print('Already generated samples from this file!')
 else:
 
-    character_dataset = processScreenshot.CharacterDataset()
-    character_dataset.load_data_set('dataset/character_samples.pickle')
-    character_dataset.currently_training = True
-
     screenshot_capture = ScreenshotCapture.ScreenshotCapture()
     screenshot_example = Image.open('screenshot_examples/T-2017_07_16_133135.jpg').convert('L')
     screenshot_capture.set_screenshot(screenshot_example)
@@ -29,8 +25,6 @@ else:
 
     processScreenshot.get_nicks(top_names, True)
     processScreenshot.get_nicks(bottom_names, True)
-
-    character_dataset.save_data_set('dataset')
 
     alreadyTrainedOn.append(current_file)
     with open('dataset/readImages.json', 'w') as outfile:

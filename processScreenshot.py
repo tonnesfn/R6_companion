@@ -28,9 +28,11 @@ class CharacterDataset:
     characters = {}
     currently_training = False
 
-    def load_data_set(self, filename):
-        if os.path.isfile(filename):
-            self.characters = pickle.load(open(filename, "rb"))
+    def load_data_set(self, directory):
+        if os.path.isfile(directory + '/character_samples.pickle'):
+            self.characters = pickle.load(open(directory + '/character_samples.pickle', "rb"))
+        else:
+            print('No dataset to load - creating new character pickle file')
 
     def save_data_set(self, directory):
         pickle.dump(self.characters, open(directory + '/character_samples.pickle', "wb"))
