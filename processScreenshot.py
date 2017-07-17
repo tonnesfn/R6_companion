@@ -116,7 +116,7 @@ class CharacterDataset:
         classifications = []
 
         for sentence_image in sentence_images:
-            classifications.append(''.join(self.classify_sentence(sentence_image)))
+            classifications.append([''.join(self.classify_sentence(sentence_image))])
 
         return classifications
 
@@ -209,7 +209,7 @@ def threshold_image(given_image):
     else:
         ret_image = erode_image(ret_image, 1)
 
-    ret_image.show()
+    #ret_image.show()
 
     return ret_image
 
