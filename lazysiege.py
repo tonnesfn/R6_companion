@@ -7,6 +7,7 @@ from PIL import ImageGrab, Image, ImageEnhance, ImageOps
 import pytesseract
 from time import gmtime, strftime
 import requests
+import processScreenshot
 
 byref = ctypes.byref
 user32 = ctypes.windll.user32
@@ -53,7 +54,32 @@ def handle_win_f3 ():
     print("hotkey f3 pressed, screenshot starting")
     width, height = (2560, 1440)
     with open(os.path.join(os.path.curdir, 'screenshot_examples', "screenshot_%s.jpg" % strftime("%Y_%m_%d_%H%M%S", gmtime())), "w+") as f:
-        ImageGrab.grab().save(f)
+        screen = ImageGrab.grab()
+        screen.save(f)
+        top_names, bottom_names = processScreenshot.screenshot_capture.get_names()
+
+        top_team = processScreenshot.get_nicks(top_names, False)
+        bottom_team = processScreenshot.get_nicks(bottom_names, False)
+
+        for player in top_team:
+            for alternative_name in player:
+                p = lookup_player(alternative_name)
+                if p["player"]["username"] == "notfound":
+                    continue
+                else:
+                    print_player(alternative_name, p)
+                    break
+        for player in bottom_team:
+            for alternative_name in player:
+                p = lookup_player(alternative_name)
+                if p["player"]["username"] == "notfound":
+                    continue
+                else:
+                    print_player(alternative_name, p)
+                    break
+
+
+    comment = """
     top_team = ImageGrab.grab(bbox=(width*0.18, height*0.31, width*0.38, height*0.55)).convert('L')
     with open(os.path.join(os.path.curdir, 'screenshot_examples', "top_%s.jpg" % strftime("%Y_%m_%d_%H%M%S", gmtime())), "w+") as f:
         top_team.save(f, "JPEG")
@@ -71,6 +97,7 @@ def handle_win_f3 ():
         if len(line.strip()) > 0:
             player = lookup_player(line.strip())
             print_player(player, line.strip())
+    """
 
     print("screenshot done")
 
