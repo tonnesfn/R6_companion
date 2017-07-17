@@ -8,6 +8,7 @@ import pytesseract
 from time import gmtime, strftime
 import requests
 import processScreenshot
+import ScreenshotCapture
 
 byref = ctypes.byref
 user32 = ctypes.windll.user32
@@ -54,9 +55,13 @@ def handle_win_f3 ():
     print("hotkey f3 pressed, screenshot starting")
     width, height = (2560, 1440)
     with open(os.path.join(os.path.curdir, 'screenshot_examples', "screenshot_%s.jpg" % strftime("%Y_%m_%d_%H%M%S", gmtime())), "w+") as f:
+        screenshot_capture = ScreenshotCapture.ScreenshotCapture()
         screen = ImageGrab.grab()
         screen.save(f)
-        top_names, bottom_names = processScreenshot.screenshot_capture.get_names()
+        screenshot = screen.convert('L')
+        screenshot_capture.set_screenshot(screenshot)
+
+        top_names, bottom_names = screenshot_capture.get_names()
 
         top_team = processScreenshot.get_nicks(top_names, False)
         bottom_team = processScreenshot.get_nicks(bottom_names, False)
@@ -64,6 +69,7 @@ def handle_win_f3 ():
         for player in top_team:
             for alternative_name in player:
                 p = lookup_player(alternative_name)
+                print(alternative_name)
                 if p["player"]["username"] == "notfound":
                     continue
                 else:
