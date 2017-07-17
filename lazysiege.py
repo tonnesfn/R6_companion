@@ -66,10 +66,12 @@ def handle_win_f3 ():
         top_team = processScreenshot.get_nicks(top_names, False)
         bottom_team = processScreenshot.get_nicks(bottom_names, False)
 
+        print(top_team)
+        print(bottom_team)
+
         for player in top_team:
             for alternative_name in player:
                 p = lookup_player(alternative_name)
-                print(alternative_name)
                 if p["player"]["username"] == "notfound":
                     continue
                 else:
