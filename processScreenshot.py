@@ -15,15 +15,15 @@ spacing = 43
 underscore_position = 48
 
 thresholding_limit_black = 140  # Higher number is a stricter thresholding
-thresholding_limit_gray = 95  # Higher number is a stricter thresholding
-thresholding_limit_white = 85  # Lower number is a stricter thresholding
+thresholding_limit_gray = 95    # Higher number is a stricter thresholding
+thresholding_limit_white = 85   # Lower number is a stricter thresholding
 
 image_padding_size = [67, 67]
 
 
 class CharacterDataset:
     characters = {}
-    currently_training = False
+    training_labels = []
 
     def load_data_set(self, directory):
         if os.path.isfile(directory + '/character_samples.pickle'):
@@ -34,33 +34,14 @@ class CharacterDataset:
     def save_data_set(self, directory):
         pickle.dump(self.characters, open(directory + '/character_samples.pickle', "wb"))
 
-        counterDict = {}
+        counter_dict = {}
         for key, value in self.characters.items():
-            counterDict[key] = len(value)
+            counter_dict[key] = len(value)
 
         with open('dataset/character_stats.json', 'w') as outfile:
-            json.dump(counterDict, outfile, indent=4, sort_keys=True)
+            json.dump(counter_dict, outfile, indent=4, sort_keys=True)
 
-    def prompt_user_for_class(self, character_image):
-        #show_image(character_image.filter(ImageFilter.GaussianBlur(blur_amount)))
-        show_image(character_image)
-        print('> ', end='')
-
-        while True:
-            given_character = input()
-            if len(given_character) == 1:
-                break
-
-        if given_character in self.characters:
-            #self.characters[given_character].append(image_to_array(character_image.filter(ImageFilter.GaussianBlur(blur_amount))).flatten())
-            self.characters[given_character].append(image_to_array(character_image).flatten())
-        else:
-            #self.characters[given_character] = [image_to_array(character_image.filter(ImageFilter.GaussianBlur(blur_amount))).flatten()]
-            self.characters[given_character] = [image_to_array(character_image).flatten()]
-
-        return given_character
-
-    def matches(self, character_image_a, character_image_b, character_print):
+    def matches(self, character_image_a, character_image_b):
         if len(character_image_a) != len(character_image_b):
             print('Length mismatch!')
             return False
@@ -72,13 +53,11 @@ class CharacterDataset:
 
         error = error / len(character_image_a)
 
-        #print('Error for ' + character_print + ': {}'.format(error))
-
         return error
 
-    def classify_character(self, character_image):
+    def classify_character(self, character_image, label=''):
 
-        if (len(self.characters) > 0) and (self.currently_training == False):
+        if (len(self.characters) > 0) and (len(label) == 0):
             # For each character in dataset:
             errors = {}
 
@@ -86,35 +65,48 @@ class CharacterDataset:
                 # For each character example in current character:
                 all_errors = []
                 for i in range(len(value)):
-                    #all_errors.append(self.matches(image_to_array(character_image.filter(ImageFilter.GaussianBlur(blur_amount))).flatten(), value[i], key))
-                    all_errors.append(self.matches(image_to_array(character_image).flatten(), value[i], key))
+                    all_errors.append(self.matches(image_to_array(character_image).flatten(), value[i]))
 
                 errors[key] = min(all_errors)
 
-            if self.currently_training == False:
+            if len(self.training_labels) == 0:
                 return min(errors, key=errors.get)
 
         else:
-            return self.prompt_user_for_class(character_image)
+            if label in self.characters:
+                self.characters[label].append(image_to_array(character_image).flatten())
+            else:
+                self.characters[label] = [image_to_array(character_image).flatten()]
 
-    def classify_sentence(self, character_images):
+            return label
+
+    def classify_sentence(self, character_images, training_label=''):
         classifications = []
 
+        if (len(training_label) != 0) and (len(character_images) != len(training_label)):
+            print('Wrong chacater count when compared to training!')
+
         for i in range(len(character_images)):
-            classifications.append(self.classify_character(character_images[i]))
+            if len(training_label) == 0:
+                classifications.append(self.classify_character(character_images[i]))
+            else:
+                classifications.append(self.classify_character(character_images[i], training_label[i]))
 
         return classifications
 
-    def classify_sentences(self, sentence_images):
+    def classify_sentences(self, sentence_images, training_labels):
 
-        if (self.currently_training == False) and (len(self.characters) == 0):
+        if (len(self.training_labels) == 0) and (len(self.characters) == 0):
             print('Cannot classify without training data!')
             return None
 
         classifications = []
 
-        for sentence_image in sentence_images:
-            classifications.append([''.join(self.classify_sentence(sentence_image))])
+        for i in range(len(sentence_images)):
+            if len(training_labels) == 0:
+                classifications.append([''.join(self.classify_sentence(sentence_images[i]))])
+            else:
+                classifications.append([''.join(self.classify_sentence(sentence_images[i], training_labels[i]))])
 
         return classifications
 
@@ -288,16 +280,16 @@ def process_screenshot(given_images):
     return character_lists
 
 
-def get_nicks(given_sentence_images, currently_training=False):
+def get_nicks(given_sentence_images, training_labels=[]):
     character_dataset = CharacterDataset()
 
     character_dataset.load_data_set('dataset')
-    character_dataset.currently_training = currently_training
+    character_dataset.training_labels = training_labels
 
     letters = process_screenshot(given_sentence_images)
-    nicks = CharacterDataset.classify_sentences(character_dataset, letters)
+    nicks = CharacterDataset.classify_sentences(character_dataset, letters, training_labels)
 
-    if currently_training == True:
+    if len(training_labels) > 0:
         character_dataset.save_data_set('dataset')
 
     return nicks
@@ -305,10 +297,10 @@ def get_nicks(given_sentence_images, currently_training=False):
 if __name__ == "__main__":
 
     screenshot_capture = ScreenshotCapture.ScreenshotCapture()
-    screenshot_example = Image.open('screenshot_examples/screenshot_2017_07_17_133442.jpg').convert('L')
+    screenshot_example = Image.open('screenshot_examples/screenshot_2017_07_17_141006.jpg').convert('L')
     screenshot_capture.set_screenshot(screenshot_example)
 
     top_names, bottom_names = screenshot_capture.get_names()
 
-    print(get_nicks(top_names, False))
-    print(get_nicks(bottom_names, False))
+    print(get_nicks(top_names))
+    #print(get_nicks(bottom_names))
