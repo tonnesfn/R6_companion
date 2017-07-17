@@ -4,7 +4,7 @@ import json
 import os.path
 import ScreenshotCapture
 
-current_file = 'screenshot_examples/bottomtest_2017_07_15_162346.jpg'
+current_file = 'screenshot_examples/screenshot_2017_07_17_133442.jpg'
 
 alreadyTrainedOn = []
 
@@ -18,7 +18,7 @@ if current_file in alreadyTrainedOn:
 else:
 
     screenshot_capture = ScreenshotCapture.ScreenshotCapture()
-    screenshot_example = Image.open('screenshot_examples/T-2017_07_16_133135.jpg').convert('L')
+    screenshot_example = Image.open(current_file).convert('L')
     screenshot_capture.set_screenshot(screenshot_example)
 
     top_names, bottom_names = screenshot_capture.get_names()

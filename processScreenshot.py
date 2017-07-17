@@ -14,14 +14,13 @@ error_limit = 0.1
 
 pre_spacing = 14
 spacing = 43
-underscore_position = 38
-nick_height = 31
+underscore_position = 48
 
-thresholding_limit_black = 120  # Higher number is a stricter thresholding
-thresholding_limit_gray = 110  # Higher number is a stricter thresholding
-thresholding_limit_white = 80  # Lower number is a stricter thresholding
+thresholding_limit_black = 140  # Higher number is a stricter thresholding
+thresholding_limit_gray = 95  # Higher number is a stricter thresholding
+thresholding_limit_white = 85  # Lower number is a stricter thresholding
 
-image_padding_size = [60, 35]
+image_padding_size = [67, 67]
 
 
 class CharacterDataset:
@@ -210,6 +209,8 @@ def threshold_image(given_image):
     else:
         ret_image = erode_image(ret_image, 1)
 
+    ret_image.show()
+
     return ret_image
 
 
@@ -306,7 +307,7 @@ def get_nicks(given_sentence_images, currently_training=False):
 if __name__ == "__main__":
 
     screenshot_capture = ScreenshotCapture.ScreenshotCapture()
-    screenshot_example = Image.open('screenshot_examples/T-2017_07_16_133135.jpg').convert('L')
+    screenshot_example = Image.open('screenshot_examples/screenshot_2017_07_17_133442.jpg').convert('L')
     screenshot_capture.set_screenshot(screenshot_example)
 
     top_names, bottom_names = screenshot_capture.get_names()

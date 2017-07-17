@@ -22,6 +22,9 @@ class ScreenshotCapture:
             # These numbers should result in the full black box only (excluding white line to the left)
             left, tops = 322, [351, 410, 469, 527, 586]
             line_height = 53
+        elif self.raw_screenshot.size == (2560, 1440):
+            left, tops = 412, [439, 512, 585, 659, 732]
+            line_height = 67
         else:
             print('Unknown screenshot size {}{}!'.format(self.raw_screenshot.size[0],self.raw_screenshot.size[1]))
 
@@ -37,6 +40,9 @@ class ScreenshotCapture:
             # These numbers should result in the full black box only (excluding white line to the left)
             left, tops = 322, [744, 802, 861, 920, 978]
             line_height = 53
+        elif self.raw_screenshot.size == (2560, 1440):
+            left, tops = 408, [929, 1003, 1076, 1149, 1223]
+            line_height = 67
         else:
             print('Unknown screenshot size {}{}!'.format(self.raw_screenshot.size[0],self.raw_screenshot.size[1]))
 
@@ -56,14 +62,14 @@ class ScreenshotCapture:
 if __name__ == "__main__":
     screenshot_capture = ScreenshotCapture()
 
-    #sleep(8)
-    #image = screenshot_capture.get_screenshot()
+    sleep(4)
+    image = screenshot_capture.get_screenshot()
 
-    screenshot_example = Image.open('screenshot_examples/T-2017_07_16_133135.jpg')
-    screenshot_capture.set_screenshot(screenshot_example)
+    #screenshot_example = Image.open('screenshot_examples/T-2017_07_16_133135.jpg')
+    #screenshot_capture.set_screenshot(screenshot_example)
 
-    top = screenshot_capture.get_top_names()
-    bottom = screenshot_capture.get_bottom_names()
+    #top = screenshot_capture.get_top_names()
+    #bottom = screenshot_capture.get_bottom_names()
 
     #print(top.size)
     #print(bottom.size)
