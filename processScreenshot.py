@@ -1,11 +1,9 @@
 from PIL import Image
-from PIL import ImageFilter
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import os.path
 import cv2
-import time
 import json
 import ScreenshotCapture
 
