@@ -14,7 +14,7 @@ if os.path.isfile('dataset/readImages.json') == True:
     with open('dataset/readImages.json') as f:
         alreadyTrainedOn = json.load(f)
 
-if current_file in alreadyTrainedOn:
+if (sample_directory+current_file) in alreadyTrainedOn:
     print('Already generated samples from this file!')
 else:
     # Open existing json
@@ -42,7 +42,7 @@ else:
     top_names, bottom_names = screenshot_capture.get_names()
 
     processScreenshot.get_nicks(top_names, image_labels[:5])
-    #processScreenshot.get_nicks(bottom_names, image_labels[5:])
+    processScreenshot.get_nicks(bottom_names, image_labels[5:])
 
     alreadyTrainedOn.append(sample_directory + current_file)
     with open('dataset/readImages.json', 'w') as outfile:
