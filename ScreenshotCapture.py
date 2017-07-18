@@ -23,7 +23,7 @@ class ScreenshotCapture:
             left, tops = 322, [351, 410, 469, 527, 586]
             line_height = 53
         elif self.raw_screenshot.size == (2560, 1440):
-            left, tops = 412, [439, 512, 585, 659, 732]
+            left, tops = 415, [439, 512, 585, 659, 732]
             line_height = 67
         else:
             print('Unknown screenshot size {}{}!'.format(self.raw_screenshot.size[0],self.raw_screenshot.size[1]))
@@ -41,7 +41,7 @@ class ScreenshotCapture:
             left, tops = 322, [744, 802, 861, 920, 978]
             line_height = 53
         elif self.raw_screenshot.size == (2560, 1440):
-            left, tops = 408, [929, 1003, 1076, 1149, 1223]
+            left, tops = 415, [929, 1003, 1076, 1149, 1223]
             line_height = 67
         else:
             print('Unknown screenshot size {}{}!'.format(self.raw_screenshot.size[0],self.raw_screenshot.size[1]))

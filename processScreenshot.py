@@ -8,11 +8,8 @@ import json
 import ScreenshotCapture
 
 blur_amount = 0.5
-error_limit = 0.1
 
-pre_spacing = 14
-spacing = 43
-underscore_position = 48
+underscore_position = 47
 
 thresholding_limit_black = 140  # Higher number is a stricter thresholding
 thresholding_limit_gray = 95    # Higher number is a stricter thresholding
@@ -84,7 +81,8 @@ class CharacterDataset:
         classifications = []
 
         if (len(training_label) != 0) and (len(character_images) != len(training_label)):
-            print('Wrong chacater count when compared to training!')
+            print('Wrong character count when training ' + training_label)
+            return None
 
         for i in range(len(character_images)):
             if len(training_label) == 0:
@@ -103,10 +101,21 @@ class CharacterDataset:
         classifications = []
 
         for i in range(len(sentence_images)):
-            if len(training_labels) == 0:
-                classifications.append([''.join(self.classify_sentence(sentence_images[i]))])
-            else:
-                classifications.append([''.join(self.classify_sentence(sentence_images[i], training_labels[i]))])
+            if len(training_labels) == 0:  # Not training:
+                classification = self.classify_sentence(sentence_images[i])
+                if classification != None:
+                    classifications.append([''.join(classification)])
+                else:
+                    classifications.append('')
+            else:  # Training:
+                if len(training_labels[i]) > 0:
+                    classification = self.classify_sentence(sentence_images[i], training_labels[i])
+                    if classification != None:
+                        classifications.append([''.join(classification)])
+                    else:
+                        classifications.append('')
+                else:
+                    classifications.append('')
 
         return classifications
 
@@ -194,12 +203,11 @@ def threshold_image(given_image):
     elif white_counter > 0.65:
         ret_image = erode_image(ret_image, 1)
         image_array = image_to_array(ret_image)
+        image_array[0:5, :] = 0
         image_array[underscore_position + 1:, :] = 0
         ret_image = array_to_image(image_array, ret_image)
     else:
         ret_image = erode_image(ret_image, 1)
-
-    #ret_image.show()
 
     return ret_image
 
@@ -271,6 +279,7 @@ def process_screenshot(given_images):
     for i in range(len(given_images)):
         given_images[i] = threshold_image(given_images[i])
         given_images[i] = run_custom_filters(given_images[i])
+        #given_images[i].show()
 
     character_lists = []
 
@@ -297,10 +306,10 @@ def get_nicks(given_sentence_images, training_labels=[]):
 if __name__ == "__main__":
 
     screenshot_capture = ScreenshotCapture.ScreenshotCapture()
-    screenshot_example = Image.open('screenshot_examples/screenshot_2017_07_17_141006.jpg').convert('L')
+    screenshot_example = Image.open('screenshot_examples/screenshot_2017_07_17_185104.jpg').convert('L')
     screenshot_capture.set_screenshot(screenshot_example)
 
     top_names, bottom_names = screenshot_capture.get_names()
 
     print(get_nicks(top_names))
-    #print(get_nicks(bottom_names))
+    print(get_nicks(bottom_names))
