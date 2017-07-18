@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import processScreenshot
+import random
 
 class RNN:
     n_nodes_hl1 = 1000
@@ -43,7 +44,9 @@ class RNN:
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=self.y))
         optimizer = tf.train.AdamOptimizer().minimize(cost)
 
-        hm_epochs = 25
+        hm_epochs = 100
+
+        test_x, test_y = self.character_dataset.get_test_data()
 
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
@@ -52,7 +55,7 @@ class RNN:
                 epoch_loss = 0
 
                 i = 0
-                while i < len(self.character_dataset.characters):
+                while i < int(len(self.character_dataset.characters) * (1-self.character_dataset.testing_amount)):
                     batch_x, batch_y = self.character_dataset.get_batch(i, self.batch_size);
 
                     batch_x = np.array(batch_x)
@@ -65,9 +68,11 @@ class RNN:
 
                 print('Epoch', epoch+1, 'completed out of', hm_epochs, 'loss:', epoch_loss)
 
-            #correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
-            #accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
-            #print('accuracy: {}'.format(accuracy))
+            correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
+            accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
+
+            print('Accuracy:', accuracy.eval({self.x: test_x, self.y: test_y}))
 
     def __init__(self):
         self.character_dataset.load_data_set('dataset')
+        random.shuffle(self.character_dataset.characters)

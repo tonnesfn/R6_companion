@@ -20,6 +20,7 @@ image_padding_size = [67, 67]
 
 
 class CharacterDataset:
+    testing_amount = 0.2;
     characters = []  # Format: char, data
     training_labels = []
     dataset_dictionary = list(string.ascii_lowercase) + list(string.ascii_uppercase) + \
@@ -46,6 +47,18 @@ class CharacterDataset:
             batch_y.append(self.get_one_hot_encoded(self.characters[start + i][0]))
 
         return batch_x, batch_y
+
+    def get_test_data(self):
+        start = int(len(self.characters) * (1-self.testing_amount))
+
+        test_x = []
+        test_y = []
+
+        for i in range(len(self.characters) - start):
+            test_x.append(self.characters[start + i][1])
+            test_y.append(self.get_one_hot_encoded(self.characters[start + i][0]))
+
+        return test_x, test_y
 
     def load_data_set(self, directory):
         if os.path.isfile(directory + '/character_samples.pickle'):
