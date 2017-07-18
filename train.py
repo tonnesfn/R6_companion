@@ -5,9 +5,10 @@ import os.path
 import ScreenshotCapture
 import lazysiege
 
+import RNN
+
 sample_directory = 'screenshot_examples/'
 labels_json_file_name = 'labels.json'
-
 
 def label_dataset(given_filename):
     # Open existing json
@@ -65,8 +66,16 @@ def label_dataset(given_filename):
     with open(sample_directory + labels_json_file_name, 'w') as outfile:
         json.dump(labels, outfile, indent=4, sort_keys=True)
 
+def train(given_model):
 
-def train_on_file(given_file_name):
+    if given_model == 'RNN':
+        rnn = RNN.RNN()
+        rnn.train_neural_network()
+
+    else:
+        print('Unknown model!')
+
+def generate_dataset(given_file_name):
     already_trained_on = []
 
     if os.path.isfile('dataset/readImages.json') == True:
@@ -87,7 +96,6 @@ def train_on_file(given_file_name):
         # Check if the file has already been labeled:
         for i in range(len(labels)):
             if labels[i]['filename'] == given_file_name:
-                labeled = True
                 image_labels = labels[i]['names']
 
         if len(image_labels) == 0:
@@ -112,6 +120,7 @@ def train_on_file(given_file_name):
 #current_file = 'screenshot_2017_07_17_141006.jpg'
 
 if __name__ == "__main__":
+
     sample_files = os.listdir(sample_directory)
     sample_files.remove(labels_json_file_name)
 
@@ -141,4 +150,8 @@ if __name__ == "__main__":
 
     # Train on unlabeled files
     for label in labeled_files:
-        train_on_file(label)
+        generate_dataset(label)
+
+    train('RNN')
+
+
