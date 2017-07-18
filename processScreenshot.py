@@ -81,7 +81,8 @@ class CharacterDataset:
         classifications = []
 
         if (len(training_label) != 0) and (len(character_images) != len(training_label)):
-            print('Wrong chacater count when training ' + training_label)
+            print('Wrong character count when training ' + training_label)
+            return None
 
         for i in range(len(character_images)):
             if len(training_label) == 0:
@@ -100,10 +101,21 @@ class CharacterDataset:
         classifications = []
 
         for i in range(len(sentence_images)):
-            if len(training_labels) == 0:
-                classifications.append([''.join(self.classify_sentence(sentence_images[i]))])
-            else:
-                classifications.append([''.join(self.classify_sentence(sentence_images[i], training_labels[i]))])
+            if len(training_labels) == 0:  # Not training:
+                classification = self.classify_sentence(sentence_images[i])
+                if classification != None:
+                    classifications.append([''.join(classification)])
+                else:
+                    classifications.append('')
+            else:  # Training:
+                if len(training_labels[i]) > 0:
+                    classification = self.classify_sentence(sentence_images[i], training_labels[i])
+                    if classification != None:
+                        classifications.append([''.join(classification)])
+                    else:
+                        classifications.append('')
+                else:
+                    classifications.append('')
 
         return classifications
 
@@ -294,7 +306,7 @@ def get_nicks(given_sentence_images, training_labels=[]):
 if __name__ == "__main__":
 
     screenshot_capture = ScreenshotCapture.ScreenshotCapture()
-    screenshot_example = Image.open('screenshot_examples/screenshot_2017_07_17_141006.jpg').convert('L')
+    screenshot_example = Image.open('screenshot_examples/screenshot_2017_07_17_185104.jpg').convert('L')
     screenshot_capture.set_screenshot(screenshot_example)
 
     top_names, bottom_names = screenshot_capture.get_names()
