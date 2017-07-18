@@ -6,6 +6,7 @@ import os.path
 import cv2
 import json
 import ScreenshotCapture
+import string
 
 blur_amount = 0.5
 
@@ -19,8 +20,32 @@ image_padding_size = [67, 67]
 
 
 class CharacterDataset:
-    characters = {}
+    characters = []  # Format: char, data
     training_labels = []
+    dataset_dictionary = list(string.ascii_lowercase) + list(string.ascii_uppercase) + \
+                         ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '_', '-']
+
+    def get_one_hot_encoded(self, character):
+        one_hot_encoding = [0] * len(self.dataset_dictionary)  # Space for full dictionary plus padding
+        one_hot_encoding[self.dataset_dictionary.index(character)] = 1
+        return one_hot_encoding
+
+    def get_batch(self, batch_index, batch_size):
+        if len(self.characters) == 0:
+            print('Cannot get a batch when no characters have been trained!')
+
+        start = min(batch_index, len(self.characters))
+
+        batch_x = []
+        batch_y = []
+
+        for i in range(batch_size):
+            if start+i == len(self.characters):
+                break;
+            batch_x.append(self.characters[start+i][1])
+            batch_y.append(self.get_one_hot_encoded(self.characters[start + i][0]))
+
+        return batch_x, batch_y
 
     def load_data_set(self, directory):
         if os.path.isfile(directory + '/character_samples.pickle'):
@@ -32,8 +57,11 @@ class CharacterDataset:
         pickle.dump(self.characters, open(directory + '/character_samples.pickle', "wb"))
 
         counter_dict = {}
-        for key, value in self.characters.items():
-            counter_dict[key] = len(value)
+        for character in self.characters:
+            if character[0] in counter_dict:
+                counter_dict[character[0]] += 1
+            else:
+                counter_dict[character[0]] = 1
 
         with open('dataset/character_stats.json', 'w') as outfile:
             json.dump(counter_dict, outfile, indent=4, sort_keys=True)
@@ -58,22 +86,22 @@ class CharacterDataset:
             # For each character in dataset:
             errors = {}
 
-            for key, value in self.characters.items():
+            for character in self.characters:
                 # For each character example in current character:
                 all_errors = []
-                for i in range(len(value)):
-                    all_errors.append(self.matches(image_to_array(character_image).flatten(), value[i]))
+                for i in range(len(character[1])):
+                    all_errors.append(self.matches(image_to_array(character_image).flatten(), character[1][i]))
 
-                errors[key] = min(all_errors)
+                errors[character[0]] = min(all_errors)
 
             if len(self.training_labels) == 0:
                 return min(errors, key=errors.get)
 
         else:
-            if label in self.characters:
-                self.characters[label].append(image_to_array(character_image).flatten())
+            if len(self.characters) > 0:
+                self.characters.append([label, image_to_array(character_image).flatten()])
             else:
-                self.characters[label] = [image_to_array(character_image).flatten()]
+                self.characters = [[label, image_to_array(character_image).flatten()]]
 
             return label
 
