@@ -6,6 +6,7 @@ import ScreenshotCapture
 import lazysiege
 
 import RNN
+import SVM
 
 sample_directory = 'screenshot_examples/'
 labels_json_file_name = 'labels.json'
@@ -71,6 +72,9 @@ def train(given_model):
     if given_model == 'RNN':
         rnn = RNN.RNN()
         rnn.train_neural_network()
+    elif given_model == 'SVM':
+        svm = SVM.SVM()
+        svm.train_svm()
 
     else:
         print('Unknown model!')
@@ -152,6 +156,6 @@ if __name__ == "__main__":
     for label in labeled_files:
         generate_dataset(label)
 
-    train('RNN')
+    train('SVM')
 
 

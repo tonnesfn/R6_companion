@@ -42,6 +42,9 @@ class CharacterDataset:
 
         return xmin, xmax, ymin, ymax
 
+    def get_class(self, character):
+        return self.dataset_dictionary.index(character)
+
     # Features inspired by http://cns-classes.bu.edu/cn550/Readings/frey-slate-91.pdf
     def get_features(self, image):
 
@@ -104,7 +107,21 @@ class CharacterDataset:
 
         return batch_x, batch_y
 
-    def get_test_data(self):
+    # Returns features as X and direct label as Y
+    def get_training_data(self):
+        train_x = []
+        train_y = []
+
+        number_of_samples = int(len(self.characters) * (1-self.testing_amount))-1
+
+        if self.mode == 'features':
+            for i in range(number_of_samples):
+                train_x.append(self.get_features(self.characters[i][1]))
+                train_y.append(self.get_class(self.characters[i][0]))
+
+        return train_x, train_y
+
+    def get_test_data(self, mode='one_hot'):
         start = int(len(self.characters) * (1-self.testing_amount))
 
         test_x = []
@@ -120,7 +137,13 @@ class CharacterDataset:
                 print('Unknown dataset type!')
                 exit()
 
-            test_y.append(self.get_one_hot_encoded(self.characters[start + i][0]))
+            if mode == 'one_hot':
+                test_y.append(self.get_one_hot_encoded(self.characters[start + i][0]))
+            elif mode == 'class':
+                test_y.append(self.get_class(self.characters[start + i][0]))
+            else:
+                print('Unknonwn mode!')
+                exit()
 
         return test_x, test_y
 
