@@ -52,7 +52,7 @@ class RNN:
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=self.y))
         optimizer = tf.train.AdamOptimizer().minimize(cost)
 
-        hm_epochs = 100
+        hm_epochs = 10
 
         test_x, test_y = self.character_dataset.get_test_data()
 

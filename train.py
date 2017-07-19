@@ -156,6 +156,6 @@ if __name__ == "__main__":
     for label in labeled_files:
         generate_dataset(label)
 
-    train('SVM')
+    train('RNN')
 
 

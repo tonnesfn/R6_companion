@@ -27,7 +27,7 @@ class CharacterDataset:
                          ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '_', '-']
 
     mode = 'features'  # full / features
-    feature_length = 7
+    feature_length = 12
 
     def get_one_hot_encoded(self, character):
         one_hot_encoding = [0] * len(self.dataset_dictionary)  # Space for full dictionary plus padding
@@ -75,10 +75,21 @@ class CharacterDataset:
         features[6] = features[6] - features[4]
 
         # Calculate feature 8 and 9: Mean squared value of pixel distances as calc in 6
+        for y in range(current_image.shape[0]):
+            for x in range(current_image.shape[1]):
+                if current_image[y][x] == 255:
+                    features[7] += np.square(x - np.mean((bbox[0], bbox[1])))
+                    features[8] += np.square(y - np.mean((bbox[2], bbox[3])))
+
+        features[7] = features[7] - features[4]
+        features[8] = features[8] - features[4]
 
         # Calculate feature 10: Mean product of horizontal and vertical distances as 6
+        features[9] = features[7]*features[8]
 
-        # Calculate feature 11:
+        # Calculate feature 11: ?
+        features[10] = features[7] * features[6]
+        features[11] = features[8] * features[5]
 
         return features
 
@@ -190,7 +201,7 @@ class CharacterDataset:
                 # For each character example in current character:
                 all_errors = []
                 for i in range(len(character[1])):
-                    all_errors.append(self.matches(image_to_array(character_image).flatten(), character[1][i]))
+                    all_errors.append(self.matches(image_to_array(character_image).flatten(), character[1]))
 
                 errors[character[0]] = min(all_errors)
 
@@ -444,5 +455,9 @@ if __name__ == "__main__":
 
     top_names, bottom_names = screenshot_capture.get_names()
 
-    print(get_nicks(top_names))
-    print(get_nicks(bottom_names))
+    top_team = get_nicks(top_names)
+    bottom_team = get_nicks(bottom_names)
+
+    print(top_team)
+    print(bottom_team)
+
