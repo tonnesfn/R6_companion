@@ -4,20 +4,28 @@ import processScreenshot
 import random
 
 class RNN:
-    n_nodes_hl1 = 1000
-    n_nodes_hl2 = 1000
-    n_nodes_hl3 = 1000
+    n_nodes_hl1 = 10
+    n_nodes_hl2 = 10
+    n_nodes_hl3 = 10
 
     n_classes = 65
     batch_size = 50
 
     character_dataset = processScreenshot.CharacterDataset()
 
-    x = tf.placeholder('float', [None, 4489])
+    if character_dataset.mode == 'features':
+        input_length = character_dataset.feature_length
+    elif character_dataset.mode == 'full':
+        input_length = 4489
+    else:
+        print('Unknown mode !')
+        exit()
+
+    x = tf.placeholder('float', [None, input_length])
     y = tf.placeholder('float')
 
     def neural_network_model(self, data):
-        hidden_1_layer = {'weights': tf.Variable(tf.random_normal([4489, self.n_nodes_hl1])),
+        hidden_1_layer = {'weights': tf.Variable(tf.random_normal([self.input_length, self.n_nodes_hl1])),
                           'biases': tf.Variable(tf.random_normal([self.n_nodes_hl1]))}
         hidden_2_layer = {'weights': tf.Variable(tf.random_normal([self.n_nodes_hl1, self.n_nodes_hl2])),
                           'biases': tf.Variable(tf.random_normal([self.n_nodes_hl2]))}
@@ -44,7 +52,7 @@ class RNN:
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=self.y))
         optimizer = tf.train.AdamOptimizer().minimize(cost)
 
-        hm_epochs = 100
+        hm_epochs = 10
 
         test_x, test_y = self.character_dataset.get_test_data()
 
@@ -61,7 +69,7 @@ class RNN:
                     batch_x = np.array(batch_x)
                     batch_y = np.array(batch_y)
 
-                    _, c = sess.run([optimizer, cost], feed_dict= {self.x: batch_x, self.y: batch_y})
+                    _, c = sess.run([optimizer, cost], feed_dict={self.x: batch_x, self.y: batch_y})
                     epoch_loss += c
 
                     i = i + self.batch_size;
