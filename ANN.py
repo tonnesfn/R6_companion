@@ -3,6 +3,7 @@ import numpy as np
 import processScreenshot
 import random
 
+
 class ANN:
     n_nodes_hl1 = 10000
     n_nodes_hl2 = 10000
@@ -76,10 +77,10 @@ class ANN:
 
                 print('Epoch', epoch+1, 'completed out of', hm_epochs, 'loss:', epoch_loss)
 
-            correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
-            accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
+                correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
+                accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
 
-            print('Accuracy:', accuracy.eval({self.x: test_x, self.y: test_y}))
+                print('   Acc:', accuracy.eval({self.x: test_x, self.y: test_y}))
 
     def __init__(self):
         self.character_dataset.load_data_set('dataset')

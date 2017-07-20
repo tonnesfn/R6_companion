@@ -6,6 +6,7 @@ import ScreenshotCapture
 import lazysiege
 
 import ANN
+import RNN
 import SVM
 
 sample_directory = 'screenshot_examples/'
@@ -72,6 +73,9 @@ def train(given_model):
     if given_model == 'ANN':
         ann = ANN.ANN()
         ann.train_neural_network()
+    elif given_model == 'RNN':
+        rnn = RNN.RNN()
+        rnn.train_neural_network()
     elif given_model == 'SVM':
         svm = SVM.SVM()
         svm.train_svm()
