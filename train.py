@@ -5,7 +5,7 @@ import os.path
 import ScreenshotCapture
 import lazysiege
 
-import RNN
+import ANN
 import SVM
 
 sample_directory = 'screenshot_examples/'
@@ -69,9 +69,9 @@ def label_dataset(given_filename):
 
 def train(given_model):
 
-    if given_model == 'RNN':
-        rnn = RNN.RNN()
-        rnn.train_neural_network()
+    if given_model == 'ANN':
+        ann = ANN.ANN()
+        ann.train_neural_network()
     elif given_model == 'SVM':
         svm = SVM.SVM()
         svm.train_svm()
@@ -156,6 +156,6 @@ if __name__ == "__main__":
     for label in labeled_files:
         generate_dataset(label)
 
-    train('RNN')
+    train('ANN')
 
 

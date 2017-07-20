@@ -63,8 +63,8 @@ def handle_win_f3 ():
 
         top_names, bottom_names = screenshot_capture.get_names()
 
-        top_team = processScreenshot.get_nicks(top_names, False)
-        bottom_team = processScreenshot.get_nicks(bottom_names, False)
+        top_team = processScreenshot.get_nicks(top_names)
+        bottom_team = processScreenshot.get_nicks(bottom_names)
 
         print(top_team)
         print(bottom_team)

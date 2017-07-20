@@ -3,10 +3,10 @@ import numpy as np
 import processScreenshot
 import random
 
-class RNN:
-    n_nodes_hl1 = 100
-    n_nodes_hl2 = 100
-    n_nodes_hl3 = 100
+class ANN:
+    n_nodes_hl1 = 10000
+    n_nodes_hl2 = 10000
+    n_nodes_hl3 = 10000
 
     n_classes = 65
     batch_size = 50
@@ -52,7 +52,7 @@ class RNN:
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=self.y))
         optimizer = tf.train.AdamOptimizer().minimize(cost)
 
-        hm_epochs = 10
+        hm_epochs = 100
 
         test_x, test_y = self.character_dataset.get_test_data()
 
