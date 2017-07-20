@@ -45,6 +45,9 @@ class CharacterDataset:
     def get_class(self, character):
         return self.dataset_dictionary.index(character)
 
+    def get_char_of_class(self, given_class):
+        return self.dataset_dictionary[given_class]
+
     # Features inspired by http://cns-classes.bu.edu/cn550/Readings/frey-slate-91.pdf
     def get_features(self, image):
 

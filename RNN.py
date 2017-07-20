@@ -41,6 +41,8 @@ class RNN:
 
     def train_neural_network(self):
         prediction = self.recurrent_neural_network(self.x)
+        saver = tf.train.Saver(max_to_keep=1000)
+
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=self.y))
         optimizer = tf.train.AdamOptimizer().minimize(cost)
 
@@ -75,6 +77,8 @@ class RNN:
                 correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
                 accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
                 print('   Acc:', accuracy.eval({self.x: test_x.reshape((-1, self.n_steps, self.n_inputs)), self.y: test_y}))
+
+                saver.save(sess, '/models/RNN/model-{}-{.2f}.ckpt'.format(epoch, accuracy))
 
     def __init__(self):
         self.character_dataset.load_data_set('dataset')

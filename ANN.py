@@ -5,12 +5,12 @@ import random
 
 
 class ANN:
-    n_nodes_hl1 = 10000
-    n_nodes_hl2 = 10000
-    n_nodes_hl3 = 10000
+    n_nodes_hl1 = 1000
+    n_nodes_hl2 = 1000
+    n_nodes_hl3 = 1000
 
     n_classes = 65
-    batch_size = 50
+    batch_size = 128
 
     character_dataset = processScreenshot.CharacterDataset()
 
@@ -21,6 +21,9 @@ class ANN:
     else:
         print('Unknown mode !')
         exit()
+
+    sess = None
+    prediction = None
 
     x = tf.placeholder('float', [None, input_length])
     y = tf.placeholder('float')
@@ -48,14 +51,17 @@ class ANN:
 
         return output
 
+
+
     def train_neural_network(self):
         prediction = self.neural_network_model(self.x)
+        saver = tf.train.Saver(max_to_keep=1000)
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=self.y))
         optimizer = tf.train.AdamOptimizer().minimize(cost)
 
         hm_epochs = 100
 
-        test_x, test_y = self.character_dataset.get_test_data()
+        #test_x, test_y = self.character_dataset.get_test_data()
 
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
@@ -64,7 +70,8 @@ class ANN:
                 epoch_loss = 0
 
                 i = 0
-                while i < int(len(self.character_dataset.characters) * (1-self.character_dataset.testing_amount)):
+                #while i < int(len(self.character_dataset.characters) * (1-self.character_dataset.testing_amount)):
+                while i < int(len(self.character_dataset.characters)):
                     batch_x, batch_y = self.character_dataset.get_batch(i, self.batch_size);
 
                     batch_x = np.array(batch_x)
@@ -73,15 +80,60 @@ class ANN:
                     _, c = sess.run([optimizer, cost], feed_dict={self.x: batch_x, self.y: batch_y})
                     epoch_loss += c
 
-                    i = i + self.batch_size;
+                    i = i + self.batch_size
 
                 print('Epoch', epoch+1, 'completed out of', hm_epochs, 'loss:', epoch_loss)
 
-                correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
-                accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
+                #correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
+                #accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
 
-                print('   Acc:', accuracy.eval({self.x: test_x, self.y: test_y}))
+                #acc = accuracy.eval({self.x: test_x, self.y: test_y})
+
+                #print('Acc: {0:.2f}'.format(acc))
+
+                saver.save(sess, '/models/ANN/model-{}-{}.ckpt'.format(epoch, epoch_loss))
+
+    def get_prediction(self, given_images):
+        if self.sess == None:
+            self.prediction = self.neural_network_model(self.x)
+
+            saver = tf.train.Saver(max_to_keep=1000)
+            self.sess = tf.InteractiveSession()
+            self.sess.run(tf.global_variables_initializer())
+            saver.restore(self.sess, "/models/ANN/model-83-311392.40625.ckpt")
+
+        result = []
+
+        for image in given_images:
+            res = (self.sess.run(tf.argmax(self.prediction.eval(feed_dict={self.x: [image]}), 1)))
+            result.append(character_dataset.get_char_of_class(res[0]))
+
+        return result
 
     def __init__(self):
         self.character_dataset.load_data_set('dataset')
         random.shuffle(self.character_dataset.characters)
+
+
+if __name__ == "__main__":
+    character_dataset = processScreenshot.CharacterDataset()
+    character_dataset.load_data_set('dataset')
+
+    ann = ANN()
+
+    correct = 0
+    wrong = 0
+
+    for character in character_dataset.characters:
+        inp = []
+        inp.append(character[1])
+        pred = ann.get_prediction(inp)
+
+        if pred[0].lower() != character[0].lower():
+            wrong += 1
+            #processScreenshot.array_to_image(character[1], 67, 67).show()
+            print('Wrong: actual: ' + character[0] + ', predicted: ' + pred[0])
+        else:
+            correct += 1
+
+    print('Total {}/{} wrong)'.format(wrong, correct))
