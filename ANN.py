@@ -100,13 +100,13 @@ class ANN:
             saver = tf.train.Saver(max_to_keep=1000)
             self.sess = tf.InteractiveSession()
             self.sess.run(tf.global_variables_initializer())
-            saver.restore(self.sess, "/models/ANN/model-83-311392.40625.ckpt")
+            saver.restore(self.sess, "models/ANN/model-83-311392.40625.ckpt")
 
         result = []
 
         for image in given_images:
             res = (self.sess.run(tf.argmax(self.prediction.eval(feed_dict={self.x: [image]}), 1)))
-            result.append(character_dataset.get_char_of_class(res[0]))
+            result.append(self.character_dataset.get_char_of_class(res[0]))
 
         return result
 

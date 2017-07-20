@@ -436,6 +436,20 @@ def process_screenshot(given_images):
     return character_lists
 
 
+def get_letters(images1, images2):
+    letters_list = process_screenshot(images1) + process_screenshot(images2)
+
+    sentences = []
+
+    for sentence in letters_list:
+        letters = []
+        for letter in sentence:
+            letters.append(np.asarray(letter).flatten())
+        sentences.append(letters)
+
+    return sentences
+
+
 def get_nicks(given_sentence_images, training_labels=[]):
     character_dataset = CharacterDataset()
 

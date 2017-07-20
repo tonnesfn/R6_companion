@@ -9,6 +9,7 @@ from time import gmtime, strftime
 import requests
 import processScreenshot
 import ScreenshotCapture
+import ANN
 
 byref = ctypes.byref
 user32 = ctypes.windll.user32
@@ -55,21 +56,31 @@ def handle_win_f3 ():
     print("hotkey f3 pressed, screenshot starting")
     width, height = (2560, 1440)
     with open(os.path.join(os.path.curdir, 'screenshot_examples', "screenshot_%s.jpg" % strftime("%Y_%m_%d_%H%M%S", gmtime())), "w+") as f:
+        # Screenshot version:
         screenshot_capture = ScreenshotCapture.ScreenshotCapture()
         screen = ImageGrab.grab()
         screen.save(f)
         screenshot = screen.convert('L')
         screenshot_capture.set_screenshot(screenshot)
 
+        # File version:
+        #screenshot_capture = ScreenshotCapture.ScreenshotCapture()
+        #screenshot_example = Image.open('screenshot_examples/screenshot_2017_07_17_185104.jpg').convert('L')
+        #screenshot_capture.set_screenshot(screenshot_example)
+
         top_names, bottom_names = screenshot_capture.get_names()
 
-        top_team = processScreenshot.get_nicks(top_names)
-        bottom_team = processScreenshot.get_nicks(bottom_names)
+        letter_images = processScreenshot.get_letters(top_names, bottom_names)
 
-        print(top_team)
-        print(bottom_team)
+        ann = ANN.ANN()
 
-        for player in top_team:
+        names = []
+        for sentence in letter_images:
+            names.append(''.join(ann.get_prediction(sentence)))
+
+        print(names)
+
+        for player in names:
             for alternative_name in player:
                 p = lookup_player(alternative_name)
                 if p["player"]["username"] == "notfound":
@@ -77,15 +88,6 @@ def handle_win_f3 ():
                 else:
                     print_player(alternative_name, p)
                     break
-        for player in bottom_team:
-            for alternative_name in player:
-                p = lookup_player(alternative_name)
-                if p["player"]["username"] == "notfound":
-                    continue
-                else:
-                    print_player(alternative_name, p)
-                    break
-
 
     comment = """
     top_team = ImageGrab.grab(bbox=(width*0.18, height*0.31, width*0.38, height*0.55)).convert('L')
