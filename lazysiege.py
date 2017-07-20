@@ -11,6 +11,8 @@ import processScreenshot
 import ScreenshotCapture
 import ANN
 
+ann = ANN.ANN()
+
 byref = ctypes.byref
 user32 = ctypes.windll.user32
 pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files (x86)\\Tesseract-OCR\\tesseract'
@@ -71,8 +73,6 @@ def handle_win_f3 ():
         top_names, bottom_names = screenshot_capture.get_names()
 
         letter_images = processScreenshot.get_letters(top_names, bottom_names)
-
-        ann = ANN.ANN()
 
         names = []
         for sentence in letter_images:
