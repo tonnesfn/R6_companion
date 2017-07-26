@@ -4,7 +4,7 @@ import ctypes
 from ctypes import wintypes
 import win32con
 from PIL import ImageGrab, Image, ImageEnhance, ImageOps
-import pytesseract
+#import pytesseract
 from time import gmtime, strftime
 import requests
 import processScreenshot
@@ -15,7 +15,7 @@ ann = ANN.ANN()
 
 byref = ctypes.byref
 user32 = ctypes.windll.user32
-pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files (x86)\\Tesseract-OCR\\tesseract'
+#pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files (x86)\\Tesseract-OCR\\tesseract'
 script_dir = os.path.dirname(__file__)
 
 HOTKEYS = {
@@ -40,6 +40,7 @@ def lookup_player(username):
                 }
 
 def print_player(player, raw):
+    print(raw)
     username = player["player"]["username"]
     playtime = player["player"]["stats"]["ranked"]["playtime"] / 60 / 60
     kdr = player["player"]["stats"]["ranked"]["kd"]
@@ -81,13 +82,12 @@ def handle_win_f3 ():
         print(names)
 
         for player in names:
-            for alternative_name in player:
-                p = lookup_player(alternative_name)
-                if p["player"]["username"] == "notfound":
-                    continue
-                else:
-                    print_player(alternative_name, p)
-                    break
+            p = lookup_player(player)
+            if p["player"]["username"] == "notfound":
+                continue
+            else:
+                print_player(p, player)
+                continue
 
     comment = """
     top_team = ImageGrab.grab(bbox=(width*0.18, height*0.31, width*0.38, height*0.55)).convert('L')
