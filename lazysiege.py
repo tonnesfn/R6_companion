@@ -87,7 +87,7 @@ def handle_win_f3 ():
                 continue
             else:
                 print_player(p, player)
-                continue
+            continue
 
     comment = """
     top_team = ImageGrab.grab(bbox=(width*0.18, height*0.31, width*0.38, height*0.55)).convert('L')
