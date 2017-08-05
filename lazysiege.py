@@ -9,7 +9,7 @@ from time import gmtime, strftime
 import requests
 import processScreenshot
 import ScreenshotCapture
-import ANN
+import classifier
 
 ann = ANN.ANN()
 
@@ -66,20 +66,11 @@ def handle_win_f3 ():
         screenshot = screen.convert('L')
         screenshot_capture.set_screenshot(screenshot)
 
-        # File version:
-        #screenshot_capture = ScreenshotCapture.ScreenshotCapture()
-        #screenshot_example = Image.open('screenshot_examples/screenshot_2017_07_17_185104.jpg').convert('L')
-        #screenshot_capture.set_screenshot(screenshot_example)
-
-        top_names, bottom_names = screenshot_capture.get_names()
-
-        letter_images = processScreenshot.get_letters(top_names, bottom_names)
-
-        names = []
-        for sentence in letter_images:
-            names.append(''.join(ann.get_prediction(sentence)))
+        names = classifier.get_names(screenshot)
 
         print(names)
+
+        exit() # Philip: Fix alt under her
 
         for player in names:
             p = lookup_player(player)
