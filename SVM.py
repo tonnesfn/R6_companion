@@ -1,7 +1,8 @@
 import numpy as np
 import processScreenshot
 import random
-from sklearn import preprocessing, cross_validation, neighbors, svm
+from sklearn import svm
+
 
 class SVM:
 
