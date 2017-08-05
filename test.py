@@ -27,7 +27,7 @@ def test_segmentation(given_filename):
     screenshot_capture.set_screenshot(screenshot_example)
 
     top_names, bottom_names = screenshot_capture.get_names()
-    letters = processScreenshot.process_screenshot(top_names) + processScreenshot.process_screenshot(bottom_names)
+    letters = processScreenshot.process_screenshot(top_names + bottom_names)
 
     labels = get_labels(given_filename)
 
@@ -40,7 +40,10 @@ def test_segmentation(given_filename):
                 right += 1
             else:
                 print('    ' + labels[i] + ' not correctly classified! Got {} letters instead of correct {}'.format(len(letters[i]), len(labels[i])))
+                processScreenshot.run_custom_filters(processScreenshot.threshold_image(bottom_names[0]))
                 wrong += 1
+
+                # processScreenshot.run_custom_filters(processScreenshot.threshold_image(bottom_names[0]))
 
     return right, wrong
 

@@ -295,7 +295,7 @@ def run_custom_filters(given_image):
 
     for i in range(len(image_array[underscore_position,:])):
         # Detected transition:
-        if max(image_array[underscore_position-1:underscore_position+1, i]) != last_state:
+        if max(image_array[underscore_position-1:underscore_position+2, i]) != last_state:
             # Moving from character to black
             if last_state == 0:
                 character_start = i
@@ -304,16 +304,11 @@ def run_custom_filters(given_image):
                 # If a single underscore:
                 if 10 < i - character_start < 18:
 
-                    underscore_height = image_array[:, int(((i - character_start) / 2) + character_start)] == 255
-
-                    min_index = min(loc for loc, val in enumerate(underscore_height) if val == True)
-                    max_index = max(loc for loc, val in enumerate(underscore_height) if val == True)
-
                     #print('len: {}, {} - {}'.format(i-character_start, character_start, i))
-                    image_array[min_index:max_index+1, character_start-2:character_start+2] = 0
-                    image_array[min_index:max_index+1, i-2:i+2] = 0
+                    image_array[underscore_position-1:underscore_position+2, character_start-2:character_start+2] = 0
+                    image_array[underscore_position-1:underscore_position+2, i-2:i+2] = 0
 
-        last_state = max(image_array[underscore_position-1:underscore_position+1, i])
+        last_state = max(image_array[underscore_position-1:underscore_position+2, i])
 
     img_to_return = Image.new("L", given_image.size)
     img_to_return.putdata(image_array.astype(int).flatten())

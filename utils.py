@@ -2,6 +2,9 @@ import os
 import json
 
 
+def save_pil_image(given_image, filename):
+    given_image.save(filename, "JPEG", quality=100)
+
 def get_screenshot_files():
     new_files = os.listdir('screenshot_examples/')
     new_files.remove('labels.json')
