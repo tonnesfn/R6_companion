@@ -51,8 +51,6 @@ class ANN:
 
         return output
 
-
-
     def train_neural_network(self):
         prediction = self.neural_network_model(self.x)
         saver = tf.train.Saver(max_to_keep=1000)

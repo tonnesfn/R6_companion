@@ -12,6 +12,7 @@ import SVM
 sample_directory = 'screenshot_examples/'
 labels_json_file_name = 'labels.json'
 
+
 def label_dataset(given_filename):
     # Open existing json
     if os.path.isfile(sample_directory + labels_json_file_name):
@@ -68,6 +69,7 @@ def label_dataset(given_filename):
     with open(sample_directory + labels_json_file_name, 'w') as outfile:
         json.dump(labels, outfile, indent=4, sort_keys=True)
 
+
 def train(given_model):
 
     if given_model == 'ANN':
@@ -82,6 +84,7 @@ def train(given_model):
 
     else:
         print('Unknown model!')
+
 
 def generate_dataset(given_file_name):
     already_trained_on = []
