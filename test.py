@@ -9,6 +9,7 @@ import SVM
 import processScreenshot
 import ScreenshotCapture
 
+
 def get_labels(given_filename):
     # Open existing json
     with open('screenshot_examples/labels.json', 'r') as infile:
@@ -21,13 +22,15 @@ def get_labels(given_filename):
 
     return None
 
+
 def test_segmentation(given_filename):
     screenshot_capture = ScreenshotCapture.ScreenshotCapture()
     screenshot_example = Image.open('screenshot_examples/' + given_filename).convert('L')
     screenshot_capture.set_screenshot(screenshot_example)
 
     top_names, bottom_names = screenshot_capture.get_names()
-    letters = processScreenshot.process_screenshot(top_names + bottom_names)
+    names = top_names + bottom_names
+    letters = processScreenshot.process_screenshot(names)
 
     labels = get_labels(given_filename)
 
@@ -40,7 +43,9 @@ def test_segmentation(given_filename):
                 right += 1
             else:
                 print('    ' + labels[i] + ' not correctly classified! Got {} letters instead of correct {}'.format(len(letters[i]), len(labels[i])))
-                processScreenshot.run_custom_filters(processScreenshot.threshold_image(bottom_names[0]))
+                processScreenshot.run_custom_filters(processScreenshot.threshold_image(names[i]))
+#                screenshot_example.show()
+#                names[i].show()
                 wrong += 1
 
                 # processScreenshot.run_custom_filters(processScreenshot.threshold_image(bottom_names[0]))

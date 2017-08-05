@@ -12,9 +12,9 @@ blur_amount = 0.5
 
 underscore_position = 47
 
-thresholding_limit_black = 140  # Higher number is a stricter thresholding
+thresholding_limit_black = 165  # Higher number is a stricter thresholding
 thresholding_limit_gray = 95    # Higher number is a stricter thresholding
-thresholding_limit_white = 85   # Lower number is a stricter thresholding
+thresholding_limit_white = 88   # Lower number is a stricter thresholding
 
 image_padding_size = [67, 67]
 
@@ -305,7 +305,7 @@ def run_custom_filters(given_image):
                 if 10 < i - character_start < 18:
 
                     #print('len: {}, {} - {}'.format(i-character_start, character_start, i))
-                    image_array[underscore_position-1:underscore_position+2, character_start-2:character_start+2] = 0
+                    image_array[underscore_position-1:underscore_position+2, character_start-2:character_start+3] = 0
                     image_array[underscore_position-1:underscore_position+2, i-2:i+2] = 0
 
         last_state = max(image_array[underscore_position-1:underscore_position+2, i])
