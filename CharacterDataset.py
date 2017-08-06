@@ -4,6 +4,10 @@ import json
 import utils
 import os
 import numpy as np
+from PIL import Image
+
+import processScreenshot
+import ScreenshotCapture
 
 image_padding_size = [67, 67]
 
@@ -23,14 +27,6 @@ class CharacterDataset:
         one_hot_encoding[self.dataset_dictionary.index(character)] = 1
         return one_hot_encoding
 
-    def bbox(self, img):
-        rows = np.any(img, axis=1)
-        cols = np.any(img, axis=0)
-        xmin, xmax = np.where(cols)[0][[0, -1]]
-        ymin, ymax = np.where(rows)[0][[0, -1]]
-
-        return xmin, xmax, ymin, ymax
-
     def get_class(self, character):
         return self.dataset_dictionary.index(character)
 
@@ -45,7 +41,7 @@ class CharacterDataset:
         current_image = image.reshape(image_padding_size[0], image_padding_size[1])
 
         # Calculate feature 1 and 2: x and y pos of center of bounding box
-        bbox = self.bbox(current_image)
+        bbox = utils.bbox(current_image)
         features[0] = np.mean((bbox[0],bbox[1]))
         features[1] = np.mean((bbox[2], bbox[3]))
 
@@ -156,8 +152,8 @@ class CharacterDataset:
         else:
             print('No dataset to load - creating new character pickle file')
 
-    def save_data_set(self, directory):
-        pickle.dump(self.characters, open(directory + '/character_samples.pickle', "wb"))
+    def save_data_set(self):
+        pickle.dump(self.characters, open('dataset/character_samples.pickle', "wb"))
 
         counter_dict = {}
         for character in self.characters:
@@ -169,83 +165,30 @@ class CharacterDataset:
         with open('dataset/character_stats.json', 'w') as outfile:
             json.dump(counter_dict, outfile, indent=4, sort_keys=True)
 
-    def matches(self, character_image_a, character_image_b):
-        if len(character_image_a) != len(character_image_b):
-            print('Length mismatch!')
-            return False
 
-        error = 0
+    def gen_data_set(self):
 
-        for i in range(len(character_image_a)):
-            error += np.sqrt((float(character_image_a[i]) - float(character_image_b[i])) ** 2.0)
+        # Read labels
+        with open('screenshot_examples/labels.json', 'r') as infile:
+            labels = json.load(infile)
 
-        error = error / len(character_image_a)
+        # Read images
+        for i in range(len(labels)):  # For each screenshot file
+            current_image = Image.open('screenshot_examples/' + labels[i]['filename']).convert('L')
+            sentence_images = processScreenshot.get_letter_images_from_screenshot(current_image)
 
-        return error
+            for j in range(len(sentence_images)):  # For each sentence
+                if len(sentence_images[j]) == len(labels[i]['names'][j]):
 
-    def classify_character(self, character_image, label=''):
+                    for k in range(len(labels[i]['names'][j])):  # For each letter in sentence
+                        self.characters.append([labels[i]['names'][j][k], sentence_images[j][k]])
 
-        if (len(self.characters) > 0) and (len(label) == 0):
-            # For each character in dataset:
-            errors = {}
+        self.save_data_set()
 
-            for character in self.characters:
-                # For each character example in current character:
-                all_errors = []
-                for i in range(len(character[1])):
-                    all_errors.append(self.matches(utils.pil_image_to_array(character_image).flatten(), character[1]))
 
-                errors[character[0]] = min(all_errors)
 
-            if len(self.training_labels) == 0:
-                return min(errors, key=errors.get)
+if __name__ == "__main__":
+    characterDataset = CharacterDataset()
+    characterDataset.gen_data_set()
 
-        else:
-            if len(self.characters) > 0:
-                self.characters.append([label, utils.pil_image_to_array(character_image).flatten()])
-            else:
-                self.characters = [[label, utils.pil_image_to_array(character_image).flatten()]]
-
-            return label
-
-    def classify_sentence(self, character_images, training_label=''):
-        classifications = []
-
-        if (len(training_label) != 0) and (len(character_images) != len(training_label)):
-            print('Wrong character count when training ' + training_label)
-            return None
-
-        for i in range(len(character_images)):
-            if len(training_label) == 0:
-                classifications.append(self.classify_character(character_images[i]))
-            else:
-                classifications.append(self.classify_character(character_images[i], training_label[i]))
-
-        return classifications
-
-    def classify_sentences(self, sentence_images, training_labels):
-
-        if (len(self.training_labels) == 0) and (len(self.characters) == 0):
-            print('Cannot classify without training data!')
-            return None
-
-        classifications = []
-
-        for i in range(len(sentence_images)):
-            if len(training_labels) == 0:  # Not training:
-                classification = self.classify_sentence(sentence_images[i])
-                if classification != None:
-                    classifications.append([''.join(classification)])
-                else:
-                    classifications.append('')
-            else:  # Training:
-                if len(training_labels[i]) > 0:
-                    classification = self.classify_sentence(sentence_images[i], training_labels[i])
-                    if classification != None:
-                        classifications.append([''.join(classification)])
-                    else:
-                        classifications.append('')
-                else:
-                    classifications.append('')
-
-        return classifications
+    print('Saved dataset of {} characters'.format(len(characterDataset.characters)))

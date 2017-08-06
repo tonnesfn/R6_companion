@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import CharacterDataset
 import cv2
 import ScreenshotCapture
+import utils
 
 blur_amount = 0.5
 
@@ -15,33 +16,43 @@ thresholding_limit_white = 88   # Lower number is a stricter thresholding
 
 image_padding_size = [67, 67]
 
-def show_image(given_pil_image, figure_name='default_figure'):
-    plt.figure(figure_name)
-    plt.imshow(given_pil_image, cmap='gray')
-    plt.draw()
-    plt.pause(0.01)
 
+def get_sentence_images_from_screenshot(given_image):
+    name_width = 465
+    left_offset = 42
+    lines = []
 
-def array_to_image(given_array, par1, par2=None):
-
-    if par2==None:
-        img_to_return = Image.new("L", par1.size)
+    if given_image.size == (2560, 1440):
+        left, tops = 415, [439, 512, 585, 659, 732]
+        line_height = 67
     else:
-        img_to_return = Image.new("L", (par1, par2))
+        print('Unknown screenshot size {}{}!'.format(given_image.size[0],given_image.size[1]))
+        exit()
 
-    img_to_return.putdata(given_array.astype(int).flatten())
-    return img_to_return
+    for i in range(5):
+        lines.append(given_image.crop((left+left_offset, tops[i], left+name_width, tops[i]+line_height)))
+
+    if given_image.size == (2560, 1440):
+        left, tops = 415, [929, 1003, 1076, 1149, 1223]
+        line_height = 67
+    else:
+        print('Unknown screenshot size {}{}!'.format(given_image.size[0], given_image.size[1]))
+        exit()
+
+    for i in range(5):
+        lines.append(given_image.crop((left+left_offset, tops[i], left+name_width, tops[i]+line_height)))
+
+    return lines
 
 
-def image_to_array(img):
-    return np.array(img.getdata(),
-                    np.uint8).reshape(img.size[1], img.size[0])
-
+def get_letter_images_from_screenshot(given_image):
+    sentences = get_sentence_images_from_screenshot(given_image)
+    return process_screenshot(sentences)
 
 def run_custom_filters(given_image):
 
     # Filter out underscores:
-    image_array = image_to_array(given_image)
+    image_array = utils.pil_image_to_array(given_image)
 
     last_state = 0
     character_start = 0
@@ -56,8 +67,6 @@ def run_custom_filters(given_image):
             else:
                 # If a single underscore:
                 if 10 < i - character_start < 18:
-
-                    #print('len: {}, {} - {}'.format(i-character_start, character_start, i))
                     image_array[underscore_position-1:underscore_position+2, character_start-2:character_start+3] = 0
                     image_array[underscore_position-1:underscore_position+2, i-2:i+2] = 0
 
@@ -78,17 +87,12 @@ def threshold_image(given_image):
     white_counter = sum((image_array > 100)*1.0) / len(image_array)
     gray_counter = sum((image_array < 150)*1.0) / len(image_array)
 
-    #print('w: {}, g: {}'.format(white_counter, gray_counter), end=' ')
-
     if gray_counter > 0.99:
         thresholded_list = ((np.asarray(list(given_image.getdata())) > thresholding_limit_gray) * 255)
-        #print('gray')
     elif white_counter > 0.65:
         thresholded_list = ((np.asarray(list(given_image.getdata())) < thresholding_limit_white) * 255)
-        #print('white')
     else:
         thresholded_list = ((np.asarray(list(given_image.getdata())) > thresholding_limit_black) * 255)
-        #print('black')
 
     ret_image = Image.new('L', given_image.size)
     ret_image.putdata(thresholded_list.astype(int))
@@ -97,10 +101,10 @@ def threshold_image(given_image):
         ret_image = erode_image(ret_image, 1)
     elif white_counter > 0.65:
         ret_image = erode_image(ret_image, 1)
-        image_array = image_to_array(ret_image)
+        image_array = utils.pil_image_to_array(ret_image)
         image_array[0:5, :] = 0
         image_array[underscore_position + 1:, :] = 0
-        ret_image = array_to_image(image_array, ret_image)
+        ret_image = utils.array_to_pil_image(image_array, ret_image)
     else:
         ret_image = erode_image(ret_image, 1)
 
@@ -116,7 +120,7 @@ def pad_image(given_image):
 
 def tightly_crop(given_image):
 
-    image_array = image_to_array(given_image)
+    image_array = utils.pil_image_to_array(given_image)
     new_array = np.sum(given_image, axis=1)
 
     min_index = min(loc for loc, val in enumerate(new_array) if val > 0)
@@ -127,10 +131,10 @@ def tightly_crop(given_image):
 
     return ret_image
 
-def split_nick_image(given_image):
-    #given_image.show()
 
-    contains_character = (np.sum(image_to_array(given_image), axis=0) > 0)
+def split_nick_image(given_image):
+
+    contains_character = (np.sum(utils.pil_image_to_array(given_image), axis=0) > 0)
 
     last_state = False
     character_start = 0
@@ -144,7 +148,6 @@ def split_nick_image(given_image):
                 character_start = i
             # Moving from black to character:
             else:
-                #characters_images.append(pad_image(tightly_crop(given_image.crop((character_start, 0, i, given_image.size[1])))))
                 characters_images.append(pad_image(given_image.crop((character_start, 0, i, given_image.size[1]))))
 
         last_state = contains_character[i]
@@ -153,7 +156,7 @@ def split_nick_image(given_image):
 
 
 def erode_image(given_image, kernel_size):
-    image_array = image_to_array(given_image)
+    image_array = utils.pil_image_to_array(given_image)
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
     image_array = cv2.erode(image_array, kernel, iterations=1)
     img_to_return = Image.new("L", given_image.size)
@@ -161,8 +164,9 @@ def erode_image(given_image, kernel_size):
 
     return img_to_return
 
+
 def dilate_image(given_image, kernel_size):
-    image_array = image_to_array(given_image)
+    image_array = utils.pil_image_to_array(given_image)
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
     image_array = cv2.dilate(image_array, kernel, iterations=1)
     img_to_return = Image.new("L", given_image.size)
@@ -170,11 +174,11 @@ def dilate_image(given_image, kernel_size):
 
     return img_to_return
 
+
 def process_screenshot(given_images):
     for i in range(len(given_images)):
         given_images[i] = threshold_image(given_images[i])
         given_images[i] = run_custom_filters(given_images[i])
-        #given_images[i].show()
 
     character_lists = []
 
@@ -208,7 +212,7 @@ def get_nicks(given_sentence_images, training_labels=[]):
     nicks = CharacterDataset.classify_sentences(character_dataset, letters, training_labels)
 
     if len(training_labels) > 0:
-        character_dataset.save_data_set('dataset')
+        character_dataset.save_data_set()
 
     return nicks
 
