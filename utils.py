@@ -1,9 +1,10 @@
 import os
 import json
-
+import numpy as np
 
 def save_pil_image(given_image, filename):
     given_image.save(filename, "JPEG", quality=100)
+
 
 def get_screenshot_files():
     new_files = os.listdir('screenshot_examples/')
@@ -24,3 +25,8 @@ def get_screenshot_files():
             new_files.remove(label['filename'])
 
     return new_files, sampled_files
+
+
+def pil_image_to_array(img):
+    return np.array(img.getdata(),
+                    np.uint8).reshape(img.size[1], img.size[0])
