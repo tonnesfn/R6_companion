@@ -27,5 +27,6 @@ if __name__ == "__main__":
     classifier = Classifier()
     screenshot_example = Image.open('screenshot_examples/screenshot_2017_07_17_185104.jpg').convert('L')
 
+    screenshot_example.show()
     names = classifier.get_names(screenshot_example)
     print(names)

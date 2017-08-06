@@ -11,8 +11,6 @@ import processScreenshot
 import ScreenshotCapture
 import classifier
 
-ann = ANN.ANN()
-
 byref = ctypes.byref
 user32 = ctypes.windll.user32
 #pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files (x86)\\Tesseract-OCR\\tesseract'
