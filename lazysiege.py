@@ -9,7 +9,7 @@ from time import gmtime, strftime
 import requests
 import processScreenshot
 import ScreenshotCapture
-import classifier
+from classifier import Classifier
 
 byref = ctypes.byref
 user32 = ctypes.windll.user32
@@ -63,12 +63,10 @@ def handle_win_f3 ():
         screen.save(f)
         screenshot = screen.convert('L')
         screenshot_capture.set_screenshot(screenshot)
-
-        names = classifier.get_names(screenshot)
+        c = Classifier()
+        names = c.get_names(screenshot)
 
         print(names)
-
-        exit() # Philip: Fix alt under her
 
         for player in names:
             p = lookup_player(player)
@@ -76,7 +74,7 @@ def handle_win_f3 ():
                 continue
             else:
                 print_player(p, player)
-            continue
+                continue
 
     comment = """
     top_team = ImageGrab.grab(bbox=(width*0.18, height*0.31, width*0.38, height*0.55)).convert('L')
