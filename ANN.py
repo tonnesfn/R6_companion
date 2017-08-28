@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import processScreenshot
+import CharacterDataset
 import random
 
 
@@ -12,7 +13,7 @@ class ANN:
     n_classes = 65
     batch_size = 128
 
-    character_dataset = processScreenshot.CharacterDataset()
+    character_dataset = CharacterDataset.CharacterDataset()
 
     if character_dataset.mode == 'features':
         input_length = character_dataset.feature_length
